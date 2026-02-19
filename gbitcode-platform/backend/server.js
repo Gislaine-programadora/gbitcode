@@ -8,7 +8,8 @@ const cors = require('cors');
 const chalk = require('chalk');
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
 // Middleware
 app.use(cors());
@@ -87,7 +88,7 @@ app.post('/api/commit', async (req, res) => {
             success: true,
             message: "DNA Sincronizado!",
             hash: hash,
-            url: `http://localhost:3000/repository/${repoName}`
+            url: `${BASE_URL}/repository/${repoName}`
         });
 
     } catch (error) {
