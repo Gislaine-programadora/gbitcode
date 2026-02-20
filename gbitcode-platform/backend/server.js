@@ -69,4 +69,8 @@ const db = mysql.createPool({
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Backend rodando na porta ${PORT}`));
+
+// Adicionamos "0.0.0.0" para o servidor aceitar conexões externas na nuvem
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Gbitcode Backend rodando na porta ${PORT}`);
+});
