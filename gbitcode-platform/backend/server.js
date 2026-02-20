@@ -6,18 +6,26 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// CONFIGURAÇÃO DO BANCO DE DADOS (Pega automaticamente da Railway)
+require('dotenv').config(); // Adicione isso na primeira linha!
+
+// ... resto do código
+
+// 1. PRIMEIRO: DEFINIMOS A CONEXÃO (CONFIGURAÇÃO PARA RAILWAY E LOCAL)
+// Isso precisa vir antes de qualquer db.query
 const db = mysql.createPool({
-  host: process.env.MYSQLHOST || 'localhost',
-  user: process.env.MYSQLUSER || 'root',
-  password: process.env.MYSQLPASSWORD || '',
-  database: process.env.MYSQLDATABASE || 'gbitcode',
+  host: process.env.MYSQLHOST,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
   port: process.env.MYSQLPORT || 3306,
+  ssl: {
+    rejectUnauthorized: false // Necessário para conexões seguras na nuvem
+  },
   waitForConnections: true,
   connectionLimit: 10
 });
 
-// Criar tabela se não existir (Rodar na primeira vez)
+// 2. DEPOIS: CRIAMOS A TABELA (OPCIONAL, MAS BOM PARA O PRIMEIRO ACESSO)
 const setupQuery = `
   CREATE TABLE IF NOT EXISTS repos (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -30,10 +38,11 @@ const setupQuery = `
 
 db.query(setupQuery, (err) => {
   if (err) console.error("Erro ao criar tabela:", err);
-  else console.log("Tabela 'repos' pronta para uso no MySQL!");
+  else console.log("✅ Tabela 'repos' verificada/criada com sucesso!");
 });
 
-// ROTA DE BUSCA GLOBAL (Aquela que pediste antes!)
+// 3. ROTAS DO SISTEMA
+// ROTA DE BUSCA GLOBAL
 app.get('/api/search', (req, res) => {
   const searchTerm = req.query.q;
   if (!searchTerm) return res.json([]);
@@ -54,23 +63,10 @@ app.get('/api/repos/:email', (req, res) => {
   });
 });
 
-// CONFIGURAÇÃO PARA PRODUÇÃO (RAILWAY) E LOCAL
-const db = mysql.createPool({
-  host: process.env.MYSQLHOST,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
-  port: process.env.MYSQLPORT || 3306,
-  ssl: {
-    rejectUnauthorized: false // Necessário para conexões seguras na nuvem
-  },
-  waitForConnections: true,
-  connectionLimit: 10
-});
-
+// 4. FINALMENTE: LIGAMOS O SERVIDOR
 const PORT = process.env.PORT || 3001;
 
-// Adicionamos "0.0.0.0" para o servidor aceitar conexões externas na nuvem
+// Usamos "0.0.0.0" para que a Railway consiga acessar o serviço externamente
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Gbitcode Backend rodando na porta ${PORT}`);
 });
