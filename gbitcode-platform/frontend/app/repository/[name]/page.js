@@ -55,12 +55,13 @@ const FileItem = ({ node, level, onFileClick, selectedFile }) => {
 // --- 2. FUNÇÃO PRINCIPAL ---
 export default function RepositoryFiles() {
   const { name } = useParams();
-  const { data: session } = useSession(); // Posicionado corretamente aqui
+  const { data: session } = useSession();
+  const [mounted, setMounted] = useState(false); // Posicionado corretamente aqui
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileContent, setFileContent] = useState("");
-  const userEmail = "dev-teste@gbitcode.com";
+ const userEmail = session?.user?.email || "dev-teste@gbitcode.com";
 
   const buildFileTree = (filePaths) => {
     const root = { name: 'root', children: {} };
@@ -79,6 +80,11 @@ export default function RepositoryFiles() {
         current = current.children[part];
       });
     });
+
+    useEffect(() => {
+    setMounted(true); // ADICIONE ISSO
+  }, []);
+    if (!mounted) return null;
     return root;
   };
 
@@ -201,7 +207,7 @@ export default function RepositoryFiles() {
             <button 
               onClick={() => {
                 if(confirm("⚠️ EXCLUIR PROJETO?")) {
-                  fetch(`http://localhost:3001/api/repos/${userEmail}/${name}`, { method: 'DELETE' })
+                 fetch(`https://gbitcode-production.up.railway.app/api/repos/${userEmail}/${name}`, { method: 'DELETE' })
                     .then(() => window.location.href = "/");
                 }
               }}
