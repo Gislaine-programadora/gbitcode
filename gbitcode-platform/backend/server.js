@@ -66,6 +66,10 @@ app.get('/api/repos/:email', (req, res) => {
 // 4. FINALMENTE: LIGAMOS O SERVIDOR
 const PORT = process.env.PORT || 3001;
 
+app.get('/', (req, res) => {
+  res.send('🚀 Gbitcode API está online e conectada ao MySQL!');
+});
+
 // Usamos "0.0.0.0" para que a Railway consiga acessar o serviço externamente
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Gbitcode Backend rodando na porta ${PORT}`);
