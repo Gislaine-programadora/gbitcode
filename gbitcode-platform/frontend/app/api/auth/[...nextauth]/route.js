@@ -26,4 +26,11 @@ const handler = NextAuth({
       return token;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET, // Não esqueça de adicionar isso na Vercel!
+
+   secret: process.env.NEXTAUTH_SECRET,
+  }),
+     
+  
+  export { handler as GET, handler as POST };
+  
+  // Não esqueça de adicionar isso na Vercel!
