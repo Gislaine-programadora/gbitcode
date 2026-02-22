@@ -51,6 +51,15 @@ export default function Dashboard() {
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm]);
 
+  const copyToClipboard = (repoName) => {
+  // Pegamos o nome do repositório dinamicamente
+  const command = `git clone https://github.com/gislainelophes/${repoName}.git`; 
+  navigator.clipboard.writeText(command);
+  
+  // Opcional: Um aviso visual discreto
+  alert(`Copiado: ${command}`);
+};
+
   return (
     <div className="min-h-screen bg-[#050505] text-white p-8 font-sans">
       <div className="max-w-6xl mx-auto">
@@ -60,9 +69,9 @@ export default function Dashboard() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-black text-xs shadow-[0_0_20px_rgba(37,99,235,0.5)]">GB</div>
-              <span className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.4em]">Mainframe v1.0</span>
+              <span className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.4em]">Gbitcode v1.0</span>
             </div>
-            <h1 className="text-4xl font-black tracking-tighter uppercase italic">Gbitcode<span className="text-blue-600">.</span>Storage</h1>
+            <h1 className="text-4xl font-black tracking-tighter uppercase italic">Gbitcode<span className="text-blue-600">.</span>Platform</h1>
           </div>
           
           <div className="text-right">
@@ -136,6 +145,31 @@ export default function Dashboard() {
             <h2 className="text-xl font-black mt-4 italic text-white/40">CONECTE SUA CONTA PARA SINCRONIZAR PROJETOS</h2>
           </div>
         )}
+
+        {repos.map((repo) => (
+  <div key={repo.id} className="border-b border-gray-800 py-4">
+    <h3 className="text-purple-400 font-bold uppercase">{repo.name}</h3>
+    <p className="text-gray-500 text-xs italic">"Envio realizado via Gbitcode CLI"</p>
+    
+    <div className="flex gap-6 mt-2">
+      <a href={repo.html_url} target="_blank" className="text-blue-400 hover:underline text-xs">
+        ACESSAR CÓDIGO
+      </a>
+
+      {/* NOVO BOTÃO DE CLONE */}
+      <button 
+        onClick={() => copyToClipboard(repo.name)}
+        className="text-green-400 hover:text-green-300 text-xs font-bold flex items-center gap-1 uppercase"
+      >
+        <span className="text-sm">📋</span> CLONE
+      </button>
+      
+      <span className="text-gray-600 text-[10px] ml-auto">
+        {new Date(repo.created_at).toLocaleDateString('pt-BR')}
+      </span>
+    </div>
+  </div>
+))}
 
         {/* GRID DE REPOSITÓRIOS DO USUÁRIO */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
