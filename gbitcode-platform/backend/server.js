@@ -1,20 +1,16 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
+require('dotenv').config();
+
 const app = express();
 
+// Configuração de Segurança e Limites de Dados
 app.use(cors());
-
-// Aumente esses limites no seu server.js se ainda não o fez
-app.use(express.json({ limit: '100mb' })); // Aumentamos para 100mb
+app.use(express.json({ limit: '100mb' })); 
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
-require('dotenv').config(); // Adicione isso na primeira linha!
-
-// ... resto do código
-
-// 1. PRIMEIRO: DEFINIMOS A CONEXÃO (CONFIGURAÇÃO PARA RAILWAY E LOCAL)
-// Isso precisa vir antes de qualquer db.query
+// 1. CONEXÃO COM O BANCO DE DADOS (RAILWAY)
 const db = mysql.createPool({
   host: process.env.MYSQLHOST,
   user: process.env.MYSQLUSER,
@@ -22,15 +18,14 @@ const db = mysql.createPool({
   database: process.env.MYSQLDATABASE,
   port: process.env.MYSQLPORT || 3306,
   ssl: { rejectUnauthorized: false },
-  // --- ADICIONE ESTAS LINHAS ABAIXO ---
   waitForConnections: true,
-  connectionLimit: 20, // Aumentamos de 10 para 20
+  connectionLimit: 20,
   queueLimit: 0,
-  connectTimeout: 60000, // Dá 1 minuto para o banco responder
+  connectTimeout: 60000,
   acquireTimeout: 60000
 });
 
-// 2. CRIAÇÃO DAS TABELAS EM ORDEM CORRETA
+// 2. CRIAÇÃO DAS TABELAS (ORDEM CORRETA)
 const setupQuery = `
   CREATE TABLE IF NOT EXISTS repos (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -51,14 +46,10 @@ const fileTableQuery = `
   )
 `;
 
-// Executa a primeira, e dentro do sucesso dela, executa a segunda
 db.query(setupQuery, (err) => {
-  if (err) {
-    console.error("❌ Erro ao criar tabela repos:", err);
-  } else {
+  if (err) console.error("❌ Erro ao criar tabela repos:", err);
+  else {
     console.log("✅ Tabela 'repos' verificada!");
-    
-    // Agora sim, cria a de arquivos
     db.query(fileTableQuery, (err) => {
       if (err) console.error("❌ Erro ao criar tabela repo_files:", err);
       else console.log("✅ Tabela 'repo_files' verificada!");
@@ -66,7 +57,9 @@ db.query(setupQuery, (err) => {
   }
 });
 
-// ROTA PARA LISTAR REPOSITÓRIOS
+// 3. ROTAS DA API
+
+// Listar Repositórios do Usuário
 app.get('/api/repos/:email', (req, res) => {
   const query = "SELECT * FROM repos WHERE owner_email = ?";
   db.query(query, [req.params.email], (err, results) => {
@@ -75,7 +68,7 @@ app.get('/api/repos/:email', (req, res) => {
   });
 });
 
-// --- NOVA ROTA: RECEBER O COMMIT DO CLI ---
+// RECEBER O COMMIT DO CLI
 app.post('/api/commit', (req, res) => {
   const { email, repoName, message, files } = req.body;
 
@@ -83,7 +76,6 @@ app.post('/api/commit', (req, res) => {
     return res.status(400).json({ error: "Dados incompletos" });
   }
 
-  // Primeiro, verifica se o repo já existe ou cria um novo na tabela 'repos'
   const checkRepo = "SELECT id FROM repos WHERE name = ? AND owner_email = ?";
   db.query(checkRepo, [repoName, email], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -92,48 +84,52 @@ app.post('/api/commit', (req, res) => {
       const insertRepo = "INSERT INTO repos (name, owner_email) VALUES (?, ?)";
       db.query(insertRepo, [repoName, email], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
-        saveFiles(result.insertId);
+        saveFiles(result.insertId, files, res);
       });
     } else {
-      saveFiles(results[0].id);
+      saveFiles(results[0].id, files, res);
     }
   });
+});
 
-  // Função interna para salvar os arquivos (Simulação por enquanto, ou salvar no BD)
-  function saveFiles(repoId) {
-  // Prepara os dados para inserir todos os arquivos de uma vez
+// Função para gravar os arquivos no banco
+function saveFiles(repoId, files, res) {
   const values = files.map(f => [repoId, f.name, f.content]);
-  
   const query = "INSERT INTO repo_files (repo_id, name, content) VALUES ?";
   
   db.query(query, [values], (err) => {
     if (err) {
-      console.error("Erro ao salvar arquivos no banco:", err);
-      return res.status(500).json({ error: "Falha ao guardar arquivos" });
+      console.error("❌ Erro ao salvar arquivos:", err);
+      return res.status(500).json({ error: "Falha ao gravar DNA no banco" });
     }
-    console.log(`📦 DNA Armazenado: ${files.length} arquivos salvos para o repo ${repoId}`);
+    console.log(`📦 DNA Armazenado: ${files.length} arquivos salvos.`);
     res.json({ message: "✅ Commit realizado com sucesso!", repoId });
   });
 }
 
-// --- NOVA ROTA: ENVIAR ARQUIVOS PARA O CLONE ---
+// ROTA PARA O CLONE (Recuperar arquivos)
 app.get('/api/repos/:email/:repoName/clone', (req, res) => {
-  const { email, repoName } = req.params;
+  const { repoName } = req.params;
+  const query = `
+    SELECT rf.name, rf.content 
+    FROM repo_files rf
+    JOIN repos r ON rf.repo_id = r.id
+    WHERE r.name = ?
+  `;
   
-  // Por enquanto, como estamos testando a estrutura:
-  // Aqui você buscaria os arquivos no banco de dados.
-  // Vou retornar um exemplo vazio para não dar erro no CLI
-  res.json([]); 
+  db.query(query, [repoName], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
 });
 
-// 4. FINALMENTE: LIGAMOS O SERVIDOR
-const PORT = process.env.PORT || 3001;
-
+// Status do Servidor
 app.get('/', (req, res) => {
-  res.send('🚀 Gbitcode API está online e conectada ao MySQL!');
+  res.send('🚀 Gbitcode API está online!');
 });
 
-// Usamos "0.0.0.0" para que a Railway consiga acessar o serviço externamente
+// Ligar Servidor
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Gbitcode Backend rodando na porta ${PORT}`);
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
