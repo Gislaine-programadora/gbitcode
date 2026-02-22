@@ -10,7 +10,7 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [globalResults, setGlobalResults] = useState([]);
 
-  const userEmail = session?.user?.email || "dev-teste@gbitcode.com";
+  const userEmail = session?.user?.email; // Remova o "|| dev-teste" para testar sua conta real
 
   // 1. Filtro local para os SEUS repositórios
   const myFilteredRepos = repos.filter(repo => 

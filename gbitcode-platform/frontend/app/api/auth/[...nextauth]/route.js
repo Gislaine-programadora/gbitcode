@@ -8,13 +8,9 @@ const handler = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
   ],
-  pages: {
-    signIn: '/login', // Você pode criar uma página de login personalizada depois
-  },
   callbacks: {
     async session({ session, token }) {
-      // Isso garante que o ID e o e-mail estejam sempre disponíveis no frontend
-      if (session.user) {
+      if (session && session.user) {
         session.user.id = token.sub;
       }
       return session;
@@ -26,11 +22,7 @@ const handler = NextAuth({
       return token;
     },
   },
+  secret: process.env.NEXTAUTH_SECRET,
+});
 
-   secret: process.env.NEXTAUTH_SECRET,
-  }),
-     
-  
-  export { handler as GET, handler as POST };
-  
-  // Não esqueça de adicionar isso na Vercel!
+export { handler as GET, handler as POST };
