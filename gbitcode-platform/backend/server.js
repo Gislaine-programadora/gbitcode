@@ -57,6 +57,47 @@ db.query(setupQuery, (err) => {
   }
 });
 
+// ROTA: LISTAR APENAS OS NOMES DOS ARQUIVOS (Para o Explorer da lateral esquerda)
+app.get('/api/repos/:email/:repoName/files', (req, res) => {
+  const { repoName } = req.params;
+  
+  // Busca apenas os nomes dos arquivos vinculados a esse repositório
+  const query = `
+    SELECT rf.name 
+    FROM repo_files rf
+    JOIN repos r ON rf.repo_id = r.id
+    WHERE r.name = ?
+  `;
+  
+  db.query(query, [repoName], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    
+    // Transformamos o resultado em um array simples de strings: ["pasta/file.js", "index.js"]
+    const fileList = results.map(file => file.name);
+    res.json(fileList);
+  });
+});
+
+// ROTA: LER O CONTEÚDO DE UM ARQUIVO ESPECÍFICO
+app.get('/api/repos/:email/:repoName/file/:fileName(*)', (req, res) => {
+  const { repoName, fileName } = req.params;
+
+  const query = `
+    SELECT rf.content 
+    FROM repo_files rf
+    JOIN repos r ON rf.repo_id = r.id
+    WHERE r.name = ? AND rf.name = ?
+  `;
+
+  db.query(query, [repoName, fileName], (err, results) => {
+    if (err) return res.status(500).send("Erro ao buscar conteúdo");
+    if (results.length === 0) return res.status(404).send("Arquivo não encontrado");
+
+    // Retorna apenas o texto do código
+    res.send(results[0].content);
+  });
+});
+
 // 3. ROTAS DA API
 
 // Listar Repositórios do Usuário
