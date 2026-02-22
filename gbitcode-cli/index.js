@@ -6,12 +6,16 @@ const fs = require('fs-extra');
 const path = require('path');
 const axios = require('axios');
 const open = require('open');
+const os = require('os');
 
 const program = new Command();
 const API_URL = "https://gbitcode-production.up.railway.app/api";
 
 // Caminho onde guardaremos o login do usuário no PC dele
 const CONFIG_PATH = path.join(homedir, '.gbitcode_config');
+
+// Agora você define a variável que o erro apontou
+const homedir = os.homedir();
 
 // Banner de Boas-vindas
 const welcomeBanner = () => {
@@ -56,38 +60,46 @@ program
   .description('CLI para gerenciar seus repositórios no Gbitcode')
   .version('1.0.0');
 
-// COMANDO: INIT
+ // --- COMANDO: INIT (MODERNO) ---
 program
   .command('init')
-  .description('Inicializa um novo repositório Gbitcode')
+  .description('Inicializa um novo projeto Gbitcode')
   .action(async () => {
-    welcomeBanner();
+    // welcomeBanner(); // Ative se você tiver essa função definida
     const repoName = path.basename(process.cwd());
     
     const config = { 
         id: Date.now().toString(), 
         name: repoName, 
         version: "1.0.0",
-        author: "Dev Gbit"
+        created_at: new Date().toISOString()
     };
 
-    await fs.writeJson('gbitcode.json', config, { spaces: 2 });
-    await fs.writeFile('.gbitignore', 'node_modules\n.env\n.git\n.next');
-    
-    console.log(chalk.green(`✅ Repositório '${repoName}' inicializado!`));
-    console.log(chalk.gray('📝 Arquivos gbitcode.json e .gbitignore criados.'));
+    try {
+      await fs.writeJson('gbitcode.json', config, { spaces: 2 });
+      // Criando o ignore para não enviar lixo para a nuvem
+      await fs.writeFile('.gbitignore', 'node_modules\n.env\n.git\n.next\n.gbitcode_config');
+      
+      console.log(chalk.green(`\n🚀 PROJETO '${repoName.toUpperCase()}' INICIALIZADO!`));
+      console.log(chalk.gray('📝 Configurações gbitcode.json e .gbitignore geradas com sucesso.'));
+      console.log(chalk.cyan(`💡 Próximo passo: gbitcode commit "primeiro envio"\n`));
+    } catch (err) {
+      console.error(chalk.red("❌ Erro ao inicializar:"), err.message);
+    }
   });
 
-  // --- COMANDO: LOGIN ---
+// --- COMANDO: LOGIN ---
 program
   .command('login <email>')
   .description('Conecta sua conta Gbitcode')
   .action(async (email) => {
     try {
-      // Salva o email no arquivo de configuração local
+      // Salva o email no arquivo .gbitcode_config na pasta do usuário (C:\Users\Nome\.gbitcode_config)
       await fs.writeJson(CONFIG_PATH, { email });
-      console.log(chalk.green(`\n✅ Autenticado com sucesso como: ${email}`));
-      console.log(chalk.gray(`Agora seus commits aparecerão na sua conta!\n`));
+      
+      console.log(chalk.green(`\n✅ CONEXÃO ESTABELECIDA!`));
+      console.log(chalk.white(`👤 Usuário: ${chalk.bold(email)}`));
+      console.log(chalk.gray(`Agora todos os seus envios serão vinculados a esta conta.\n`));
     } catch (err) {
       console.error(chalk.red("❌ Erro ao salvar configuração:"), err);
     }
