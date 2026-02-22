@@ -65,6 +65,48 @@ app.get('/api/repos/:email', (req, res) => {
   });
 });
 
+// --- NOVA ROTA: RECEBER O COMMIT DO CLI ---
+app.post('/api/commit', (req, res) => {
+  const { email, repoName, message, files } = req.body;
+
+  if (!email || !repoName || !files) {
+    return res.status(400).json({ error: "Dados incompletos" });
+  }
+
+  // Primeiro, verifica se o repo já existe ou cria um novo na tabela 'repos'
+  const checkRepo = "SELECT id FROM repos WHERE name = ? AND owner_email = ?";
+  db.query(checkRepo, [repoName, email], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    if (results.length === 0) {
+      const insertRepo = "INSERT INTO repos (name, owner_email) VALUES (?, ?)";
+      db.query(insertRepo, [repoName, email], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        saveFiles(result.insertId);
+      });
+    } else {
+      saveFiles(results[0].id);
+    }
+  });
+
+  // Função interna para salvar os arquivos (Simulação por enquanto, ou salvar no BD)
+  function saveFiles(repoId) {
+    // Aqui você salvaria o conteúdo dos arquivos no seu banco de dados
+    console.log(`📦 Recebidos ${files.length} arquivos para o repo ID: ${repoId}`);
+    res.json({ message: "✅ Commit realizado com sucesso!", repoId });
+  }
+});
+
+// --- NOVA ROTA: ENVIAR ARQUIVOS PARA O CLONE ---
+app.get('/api/repos/:email/:repoName/clone', (req, res) => {
+  const { email, repoName } = req.params;
+  
+  // Por enquanto, como estamos testando a estrutura:
+  // Aqui você buscaria os arquivos no banco de dados.
+  // Vou retornar um exemplo vazio para não dar erro no CLI
+  res.json([]); 
+});
+
 // 4. FINALMENTE: LIGAMOS O SERVIDOR
 const PORT = process.env.PORT || 3001;
 
