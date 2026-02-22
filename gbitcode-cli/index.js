@@ -8,7 +8,7 @@ const axios = require('axios');
 const open = require('open');
 
 const program = new Command();
-const API_URL = "http://localhost:3001/api";
+const API_URL = "https://gbitcode-production.up.railway.app/api";
 
 // Banner de Boas-vindas
 const welcomeBanner = () => {
@@ -75,7 +75,7 @@ program
     console.log(chalk.gray('📝 Arquivos gbitcode.json e .gbitignore criados.'));
   });
 
-// COMANDO: COMMIT (RECURSIVO)
+  // COMANDO: COMMIT (RECURSIVO) - ATUALIZADO
 program
   .command('commit <message>')
   .description('Envia o projeto INTEIRO para o servidor')
@@ -98,6 +98,7 @@ program
 
       console.log(chalk.yellow(`🚀 Enviando ${allFiles.length} arquivos para a nuvem...`));
 
+      // AJUSTE: O API_URL deve ser o da Railway
       const response = await axios.post(`${API_URL}/commit`, {
         email: "dev-teste@gbitcode.com",
         repoName: config.name,
@@ -106,15 +107,17 @@ program
       });
 
       console.log(chalk.green(`\n✅ SUCESSO! Código guardado com segurança.`));
-      console.log(chalk.cyan(`🔗 Dashboard: http://localhost:3000/repository/${config.name}`));
+      // AJUSTE: Link para o seu site oficial na Vercel
+      console.log(chalk.cyan(`🔗 Dashboard: https://gbitcode.vercel.app/repository/${config.name}`));
 
     } catch (error) {
       console.error(chalk.red('\n❌ Erro ao realizar commit:'));
+      // Se aparecer "status code 413", o erro está no limite do servidor Railway
       console.log(chalk.gray(error.message));
     }
   });
 
-// COMANDO: CLONE
+// COMANDO: CLONE - MANTIDO COM A LÓGICA DE PASTAS
 program
   .command('clone <repoName>')
   .description('Clona um repositório para sua máquina')
@@ -135,7 +138,7 @@ program
 
       for (const file of files) {
         const filePath = path.join(targetDir, file.name);
-        await fs.ensureDir(path.dirname(filePath)); // Cria subpastas se necessário
+        await fs.ensureDir(path.dirname(filePath)); // Esta linha já organiza as pastas!
         await fs.writeFile(filePath, file.content);
         console.log(chalk.gray(`  └─ Criando: ${file.name}`));
       }
