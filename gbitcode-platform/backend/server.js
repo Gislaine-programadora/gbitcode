@@ -20,14 +20,16 @@ const db = mysql.createPool({
   password: process.env.MYSQLPASSWORD,
   database: process.env.MYSQLDATABASE,
   port: process.env.MYSQLPORT || 3306,
-  ssl: {
-    rejectUnauthorized: false // Necessário para conexões seguras na nuvem
-  },
+  ssl: { rejectUnauthorized: false },
+  // --- ADICIONE ESTAS LINHAS ABAIXO ---
   waitForConnections: true,
-  connectionLimit: 10
+  connectionLimit: 20, // Aumentamos de 10 para 20
+  queueLimit: 0,
+  connectTimeout: 60000, // Dá 1 minuto para o banco responder
+  acquireTimeout: 60000
 });
 
-// 2. DEPOIS: CRIAMOS A TABELA (OPCIONAL, MAS BOM PARA O PRIMEIRO ACESSO)
+// 2. CRIAÇÃO DAS TABELAS EM ORDEM CORRETA
 const setupQuery = `
   CREATE TABLE IF NOT EXISTS repos (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -48,27 +50,19 @@ const fileTableQuery = `
   )
 `;
 
-db.query(fileTableQuery, (err) => {
-  if (err) console.error("Erro ao criar tabela de arquivos:", err);
-  else console.log("✅ Tabela 'repo_files' pronta!");
-});
-
+// Executa a primeira, e dentro do sucesso dela, executa a segunda
 db.query(setupQuery, (err) => {
-  if (err) console.error("Erro ao criar tabela:", err);
-  else console.log("✅ Tabela 'repos' verificada/criada com sucesso!");
-});
-
-// 3. ROTAS DO SISTEMA
-// ROTA DE BUSCA GLOBAL
-app.get('/api/search', (req, res) => {
-  const searchTerm = req.query.q;
-  if (!searchTerm) return res.json([]);
-
-  const query = "SELECT * FROM repos WHERE name LIKE ? AND public = 1 LIMIT 10";
-  db.query(query, [`%${searchTerm}%`], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
+  if (err) {
+    console.error("❌ Erro ao criar tabela repos:", err);
+  } else {
+    console.log("✅ Tabela 'repos' verificada!");
+    
+    // Agora sim, cria a de arquivos
+    db.query(fileTableQuery, (err) => {
+      if (err) console.error("❌ Erro ao criar tabela repo_files:", err);
+      else console.log("✅ Tabela 'repo_files' verificada!");
+    });
+  }
 });
 
 // ROTA PARA LISTAR REPOSITÓRIOS
