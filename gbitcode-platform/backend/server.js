@@ -164,6 +164,16 @@ app.get('/api/repos/:email/:repoName/clone', (req, res) => {
   });
 });
 
+app.get('/api/search', (req, res) => {
+  const query = req.query.q;
+  // Busca em todos os repositórios, idependente do dono
+  const sql = "SELECT * FROM repos WHERE name LIKE ?";
+  db.query(sql, [`%${query}%`], (err, results) => {
+    if (err) return res.status(500).json(err);
+    res.json(results);
+  });
+});
+
 // Status do Servidor
 app.get('/', (req, res) => {
   res.send('🚀 Gbitcode API está online!');

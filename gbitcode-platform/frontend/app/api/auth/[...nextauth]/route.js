@@ -13,10 +13,17 @@ const handler = NextAuth({
   },
   callbacks: {
     async session({ session, token }) {
-      session.user.id = token.sub;
+      // Isso garante que o ID e o e-mail estejam sempre disponíveis no frontend
+      if (session.user) {
+        session.user.id = token.sub;
+      }
       return session;
     },
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
   },
-});
-
-export { handler as GET, handler as POST };
+  secret: process.env.NEXTAUTH_SECRET, // Não esqueça de adicionar isso na Vercel!

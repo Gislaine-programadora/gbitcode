@@ -9,13 +9,11 @@ const open = require('open');
 const os = require('os');
 
 const program = new Command();
+
+// --- ORDEM CORRETA DE INICIALIZAÇÃO ---
+const homedir = os.homedir(); // 2º Cria a variável homedir primeiro
+const CONFIG_PATH = path.join(homedir, '.gbitcode_config'); // 3º Agora usa ela aqui!
 const API_URL = "https://gbitcode-production.up.railway.app/api";
-
-// Caminho onde guardaremos o login do usuário no PC dele
-const CONFIG_PATH = path.join(homedir, '.gbitcode_config');
-
-// Agora você define a variável que o erro apontou
-const homedir = os.homedir();
 
 // Banner de Boas-vindas
 const welcomeBanner = () => {
