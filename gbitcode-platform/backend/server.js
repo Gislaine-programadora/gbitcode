@@ -38,6 +38,21 @@ const setupQuery = `
   )
 `;
 
+const fileTableQuery = `
+  CREATE TABLE IF NOT EXISTS repo_files (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    repo_id INT,
+    name VARCHAR(255),
+    content LONGTEXT,
+    FOREIGN KEY (repo_id) REFERENCES repos(id) ON DELETE CASCADE
+  )
+`;
+
+db.query(fileTableQuery, (err) => {
+  if (err) console.error("Erro ao criar tabela de arquivos:", err);
+  else console.log("✅ Tabela 'repo_files' pronta!");
+});
+
 db.query(setupQuery, (err) => {
   if (err) console.error("Erro ao criar tabela:", err);
   else console.log("✅ Tabela 'repos' verificada/criada com sucesso!");
@@ -91,11 +106,20 @@ app.post('/api/commit', (req, res) => {
 
   // Função interna para salvar os arquivos (Simulação por enquanto, ou salvar no BD)
   function saveFiles(repoId) {
-    // Aqui você salvaria o conteúdo dos arquivos no seu banco de dados
-    console.log(`📦 Recebidos ${files.length} arquivos para o repo ID: ${repoId}`);
+  // Prepara os dados para inserir todos os arquivos de uma vez
+  const values = files.map(f => [repoId, f.name, f.content]);
+  
+  const query = "INSERT INTO repo_files (repo_id, name, content) VALUES ?";
+  
+  db.query(query, [values], (err) => {
+    if (err) {
+      console.error("Erro ao salvar arquivos no banco:", err);
+      return res.status(500).json({ error: "Falha ao guardar arquivos" });
+    }
+    console.log(`📦 DNA Armazenado: ${files.length} arquivos salvos para o repo ${repoId}`);
     res.json({ message: "✅ Commit realizado com sucesso!", repoId });
-  }
-});
+  });
+}
 
 // --- NOVA ROTA: ENVIAR ARQUIVOS PARA O CLONE ---
 app.get('/api/repos/:email/:repoName/clone', (req, res) => {
