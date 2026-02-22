@@ -5,8 +5,9 @@ const app = express();
 
 app.use(cors());
 
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+// Aumente esses limites no seu server.js se ainda não o fez
+app.use(express.json({ limit: '100mb' })); // Aumentamos para 100mb
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 require('dotenv').config(); // Adicione isso na primeira linha!
 
