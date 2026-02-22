@@ -10,6 +10,9 @@ const open = require('open');
 const program = new Command();
 const API_URL = "https://gbitcode-production.up.railway.app/api";
 
+// Caminho onde guardaremos o login do usuário no PC dele
+const CONFIG_PATH = path.join(homedir, '.gbitcode_config');
+
 // Banner de Boas-vindas
 const welcomeBanner = () => {
   console.log(chalk.cyan(`
@@ -75,45 +78,73 @@ program
     console.log(chalk.gray('📝 Arquivos gbitcode.json e .gbitignore criados.'));
   });
 
-  // COMANDO: COMMIT (RECURSIVO) - ATUALIZADO
+  // --- COMANDO: LOGIN ---
+program
+  .command('login <email>')
+  .description('Conecta sua conta Gbitcode')
+  .action(async (email) => {
+    try {
+      // Salva o email no arquivo de configuração local
+      await fs.writeJson(CONFIG_PATH, { email });
+      console.log(chalk.green(`\n✅ Autenticado com sucesso como: ${email}`));
+      console.log(chalk.gray(`Agora seus commits aparecerão na sua conta!\n`));
+    } catch (err) {
+      console.error(chalk.red("❌ Erro ao salvar configuração:"), err);
+    }
+  });
+
+  // COMANDO: COMMIT (RECURSIVO) - ATUALIZADO COM LOGIN REAL
 program
   .command('commit <message>')
-  .description('Envia o projeto INTEIRO para o servidor')
+  .description('Envia o projeto para o servidor Gbitcode')
   .action(async (message) => {
     try {
-      const configPath = path.join(process.cwd(), 'gbitcode.json');
+      // 1. Verificação de Login Global
+      const homedir = require('os').homedir();
+      const globalConfigPath = path.join(homedir, '.gbitcode_config');
       
-      if (!(await fs.pathExists(configPath))) {
-        return console.log(chalk.red("❌ Erro: Execute 'gbitcode init' primeiro."));
+      if (!(await fs.pathExists(globalConfigPath))) {
+        console.log(chalk.yellow("\n⚠️  Identidade não encontrada."));
+        console.log(chalk.cyan("Execute: gbitcode login seu-email@gmail.com\n"));
+        return;
       }
       
-      const config = await fs.readJson(configPath);
-      console.log(chalk.blue(`🧬 Mapeando DNA de: ${config.name}...`));
+      const { email } = await fs.readJson(globalConfigPath);
+
+      // 2. Verificação do Projeto Local
+      const projectConfigPath = path.join(process.cwd(), 'gbitcode.json');
+      if (!(await fs.pathExists(projectConfigPath))) {
+        return console.log(chalk.red("❌ Erro: Este diretório não é um projeto Gbitcode. Execute 'gbitcode init'."));
+      }
+      
+      const config = await fs.readJson(projectConfigPath);
+      
+      // LINGUAGEM MODERNA: Removido "DNA"
+      console.log(chalk.blue(`🛰️  Preparando projeto: ${chalk.bold(config.name)}...`));
 
       const allFiles = await getAllFiles(process.cwd());
 
       if (allFiles.length === 0) {
-        return console.log(chalk.yellow('⚠️ Nenhum arquivo encontrado para commit.'));
+        return console.log(chalk.yellow('⚠️ Nenhum arquivo encontrado para envio.'));
       }
 
-      console.log(chalk.yellow(`🚀 Enviando ${allFiles.length} arquivos para a nuvem...`));
+      console.log(chalk.cyan(`📦 Projeto Gbitcode enviando ${allFiles.length} arquivos...`));
+      console.log(chalk.gray(`👤 Autor: ${email}`));
 
-      // AJUSTE: O API_URL deve ser o da Railway
+      // 3. ENVIO PARA O SERVIDOR
       const response = await axios.post(`${API_URL}/commit`, {
-        email: "dev-teste@gbitcode.com",
+        email: email, // Agora usa o seu e-mail real do login
         repoName: config.name,
         message: message,
         files: allFiles
       });
 
-      console.log(chalk.green(`\n✅ SUCESSO! Código guardado com segurança.`));
-      // AJUSTE: Link para o seu site oficial na Vercel
+      console.log(chalk.green(`\n✅ PROJETO GBITCODE SINCRONIZADO!`));
       console.log(chalk.cyan(`🔗 Dashboard: https://gbitcode.vercel.app/repository/${config.name}`));
 
     } catch (error) {
-      console.error(chalk.red('\n❌ Erro ao realizar commit:'));
-      // Se aparecer "status code 413", o erro está no limite do servidor Railway
-      console.log(chalk.gray(error.message));
+      console.error(chalk.red('\n❌ Erro durante a transmissão do projeto:'));
+      console.log(chalk.gray(error.response?.data?.error || error.message));
     }
   });
 

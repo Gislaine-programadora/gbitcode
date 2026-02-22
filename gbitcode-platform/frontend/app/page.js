@@ -1,30 +1,48 @@
 "use client";
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSession } from "next-auth/react"; // Importe o hook de sessão
 
 export default function Dashboard() {
+  const { data: session } = useSession(); // Pegue os dados do usuário logado
   const [repos, setRepos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const userEmail = "dev-teste@gbitcode.com";
+  const [globalResults, setGlobalResults] = useState([]);
+
+  // Se estiver logado, usa o email do Google. Se não, usa o teste para não quebrar a página.
+  const userEmail = session?.user?.email || "dev-teste@gbitcode.com";
 
   useEffect(() => {
-  // Trocamos 'localhost:3001' pela sua URL da Railway
-  fetch(`https://gbitcode-production.up.railway.app/api/repos/${userEmail}`)
-    .then(res => res.json())
-    .then(data => {
-      // Garantimos que 'data' seja um array antes de salvar
-      setRepos(Array.isArray(data) ? data : []);
-      setLoading(false);
-    })
-    .catch((err) => {
-      console.error("Erro ao buscar repositórios:", err);
-      setLoading(false);
-    });
-}, [userEmail]); // Adicionei [userEmail] para atualizar caso o email mude
+    setLoading(true);
+    fetch(`https://gbitcode-production.up.railway.app/api/repos/${userEmail}`)
+      .then(res => res.json())
+      .then(data => {
+        setRepos(Array.isArray(data) ? data : []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Erro ao buscar repositórios:", err);
+        setLoading(false);
+      });
+  }, [userEmail]); // Recarrega sempre que o usuário logar/deslogar
 
-  // Filtro de busca inteligente
-  const filteredRepos = repos.filter(repo => 
+  // ... (mantenha o restante da lógica de busca global e filtro local)
+
+  // 2. Lógica de Busca Global (Acionada quando o usuário digita)
+  useEffect(() => {
+    if (search.length > 1) {
+      fetch(`https://gbitcode-production.up.railway.app/api/search?q=${search}`)
+        .then(res => res.json())
+        .then(data => setGlobalResults(Array.isArray(data) ? data : []))
+        .catch(err => console.error("Erro na busca global:", err));
+    } else {
+      setGlobalResults([]);
+    }
+  }, [search]);
+
+  // Filtro local para os SEUS repositórios
+  const myFilteredRepos = repos.filter(repo => 
     repo.name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -32,7 +50,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#050505] text-white font-sans p-8">
       <div className="max-w-6xl mx-auto">
         
-        {/* HEADER DA DASHBOARD */}
+        {/* HEADER */}
         <header className="flex justify-between items-center mb-16">
           <div>
             <div className="flex items-center gap-3 mb-2">
@@ -48,17 +66,32 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* BARRA DE BUSCA E STATUS */}
-        <div className="flex flex-col md:flex-row gap-6 mb-8 items-center justify-between">
+        {/* BARRA DE BUSCA COM DROPDOWN GLOBAL */}
+        <div className="flex flex-col md:flex-row gap-6 mb-8 items-center justify-between relative">
           <div className="relative w-full md:w-96">
             <input 
               type="text" 
-              placeholder="PESQUISAR REPOSITÓRIO..." 
+              placeholder="PESQUISAR REPOSITÓRIO GLOBAL..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-[#0D1117] border border-white/10 rounded-xl px-5 py-3 text-xs font-mono focus:border-blue-500 outline-none transition-all"
             />
             <span className="absolute right-4 top-3.5 opacity-30 text-xs">🔍</span>
+
+            {/* Resultado da Busca Global (Flutuante) */}
+            {globalResults.length > 0 && (
+              <div className="absolute top-full mt-2 w-full bg-[#0D1117] border border-white/20 rounded-xl shadow-2xl z-50 overflow-hidden">
+                <div className="p-2 text-[9px] text-gray-500 uppercase font-black bg-white/5">Resultados Globais</div>
+                {globalResults.map(repo => (
+                  <Link key={repo.id} href={`/repository/${repo.name}`}>
+                    <div className="p-4 hover:bg-blue-600/20 border-b border-white/5 transition-all flex justify-between items-center">
+                      <span className="text-xs font-bold uppercase">{repo.name}</span>
+                      <span className="text-[9px] text-blue-400 font-mono italic">{repo.owner_email}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
           
           <div className="flex gap-8">
@@ -73,41 +106,31 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* GRID DE REPOSITÓRIOS */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
-            {[1,2,3].map(i => <div key={i} className="h-48 bg-white/5 rounded-3xl border border-white/5"></div>)}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRepos.map((repo) => (
-              <Link key={repo.id} href={`/repository/${repo.name}`}>
-                <div className="group relative bg-[#0D1117] border border-white/10 p-8 rounded-[2rem] hover:border-blue-500/50 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
-                  {/* Efeito de brilho ao passar o mouse */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-[50px] group-hover:bg-blue-600/20 transition-all"></div>
-                  
-                  <div className="flex justify-between items-start mb-6">
-                    <span className="text-3xl grayscale group-hover:grayscale-0 transition-all">📂</span>
-                    <span className="text-[9px] font-mono text-gray-600 bg-white/5 px-2 py-1 rounded">ID: {repo.id}</span>
-                  </div>
-                  
-                  <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tight group-hover:text-blue-400 transition-colors">
-                    {repo.name}
-                  </h3>
-                  
-                  <p className="text-xs text-gray-500 font-mono mb-6 line-clamp-1 italic">
-                    "{repo.last_message || 'No commit message'}"
-                  </p>
-                  
-                  <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                    <span className="text-[10px] text-gray-600 font-bold uppercase tracking-tighter">Explorar Código</span>
-                    <span className="text-blue-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all">→</span>
-                  </div>
+        {/* GRID DE REPOSITÓRIOS DO USUÁRIO */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {loading ? (
+            <p className="text-gray-500 font-mono text-xs animate-pulse">Sincronizando DNA...</p>
+          ) : myFilteredRepos.map(repo => (
+            <Link key={repo.id} href={`/repository/${repo.name}`}>
+              <div className="group bg-[#0D1117] border border-white/5 p-6 rounded-2xl hover:border-blue-500/50 transition-all hover:translate-y-[-4px] cursor-pointer relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity">
+                   <span className="text-2xl text-blue-500">🧬</span>
                 </div>
-              </Link>
-            ))}
-          </div>
-        )}
+                <h3 className="text-lg font-black uppercase italic mb-2 group-hover:text-blue-400 transition-colors">{repo.name}</h3>
+                <p className="text-[10px] text-gray-500 font-mono mb-4">"No commit message"</p>
+                <div className="flex justify-between items-center pt-4 border-t border-white/5">
+                   <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Explorar Código</span>
+                   <span className="text-[9px] text-gray-600 font-mono">{new Date(repo.created_at).toLocaleDateString()}</span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+      </div>
+    </div>
+  );
+}
 
         {/* RODAPÉ */}
         <footer className="mt-20 pt-8 border-t border-white/5 text-center">
