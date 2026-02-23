@@ -136,7 +136,7 @@ export default function RepositoryFiles() {
       <header className="border-b border-white/5 bg-[#0a0a0a] p-4 sticky top-0 z-50">
         <div className="max-w-[1600px] mx-auto flex justify-between items-center">
           <div className="flex items-center gap-6">
-            <Link href="/" className="bg-blue-600 p-2 rounded-lg font-black text-xs">GB</Link>
+            <Link href="/" className="bg-blue-600 p-2 rounded-lg font-black text-xs hover:bg-blue-500 transition-colors">GB</Link>
             <div className="flex flex-col">
               <h1 className="text-xl font-black uppercase italic">{name}</h1>
               <span className="text-[10px] text-gray-500 font-mono tracking-widest">GBITCODE | Project Active</span>
@@ -144,24 +144,34 @@ export default function RepositoryFiles() {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* BOTÃO CLONE - CORRIGIDO E CLICÁVEL */}
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    const command = `gbitcode clone ${name}`;
+                    navigator.clipboard.writeText(command);
+                    alert(`Comando copiado: ${command}`);
+                  }
+                }}
+                className="bg-white/5 border border-white/10 rounded-full px-4 py-1 flex items-center gap-3 hover:bg-white/10 transition-all active:scale-95 group"
+                title="Clique para copiar"
+              >
+                <span className="text-[10px] font-mono text-blue-400 group-hover:text-blue-300">
+                  gbitcode clone {name} 📋
+                </span>
+              </button>
 
-          {/* BOTÃO CLONE - Agora clicável e funcional */}
-       <div className="flex items-center gap-3">
-
-            {/* BOTÃO CLONE */}
-
-             <div className="bg-white/5 border border-white/10 rounded-full px-4 py-1 flex items-center gap-3">
-
-                <span className="text-[10px] font-mono text-blue-400">gbitcode clone {name}</span>
-
-             </div>
-
-             <button onClick={() => signOut()} className="text-[10px] font-black text-red-500">SAIR</button>
-
+              {/* BOTÃO SAIR */}
+              <button 
+                onClick={() => signOut({ callbackUrl: '/' })} 
+                className="text-[10px] font-black text-red-500 hover:text-red-400 uppercase tracking-widest ml-2"
+              >
+                SAIR
+              </button>
+            </div>
           </div>
-
         </div>
-
       </header>
 
       <main className="flex-1 flex overflow-hidden h-[calc(100vh-80px)]">
