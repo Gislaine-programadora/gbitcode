@@ -63,7 +63,7 @@ program
   .command('init')
   .description('Inicializa um novo projeto Gbitcode')
   .action(async () => {
-    // welcomeBanner(); // Ative se você tiver essa função definida
+     welcomeBanner(); // Ative se você tiver essa função definida
     const repoName = path.basename(process.cwd());
     
     const config = { 
