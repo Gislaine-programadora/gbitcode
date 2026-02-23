@@ -1,7 +1,7 @@
 {
-  "name": "gbitcode-cli",
+  "name": "gbitcode-platform",
   "version": "1.0.0",
-  "description": "Gbitcode CLI - Versionamento simplificado",
+  "description": "Gbitcode platform - Versionamento simplificado",
   "main": "index.js",
   "bin": {
     "gbitcode": "index.js"
@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node index.js"
   },
-  "author": "Seu Nome",
+  "author": "gislaine-programadora",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.13.5",
