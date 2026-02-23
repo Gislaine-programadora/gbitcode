@@ -144,14 +144,24 @@ export default function RepositoryFiles() {
           </div>
 
           <div className="flex items-center gap-4">
-             {/* BOTÃO CLONE */}
-             <div className="bg-white/5 border border-white/10 rounded-full px-4 py-1 flex items-center gap-3">
-                <span className="text-[10px] font-mono text-blue-400">gbitcode clone {name}</span>
-             </div>
-             <button onClick={() => signOut()} className="text-[10px] font-black text-red-500">SAIR</button>
-          </div>
-        </div>
-      </header>
+          {/* BOTÃO CLONE - Agora clicável e funcional */}
+<button 
+  onClick={() => {
+    const command = `gbitcode clone ${name}`;
+    navigator.clipboard.writeText(command);
+    alert(`Copiado: ${command}`);
+  }}
+  className="bg-white/5 border border-white/10 rounded-full px-4 py-1 flex items-center gap-3 hover:bg-white/10 transition-all active:scale-95 group"
+  title="Clique para copiar o comando de clone"
+>
+  <span className="text-[10px] font-mono text-blue-400 group-hover:text-blue-300">
+    gbitcode clone {name} 📋
+  </span>
+</button>
+
+<button onClick={() => signOut()} className="text-[10px] font-black text-red-500">
+  SAIR
+</button>  
 
       <main className="flex-1 flex overflow-hidden h-[calc(100vh-80px)]">
         {/* EXPLORER */}
