@@ -173,13 +173,7 @@ https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&l
 
 
 
-🚀 Novo Lançamento: gbitcode-platform
-Olá, comunidade de devs! 👋
 
-Tenho o prazer de anunciar o lançamento da gbitcode-platform — uma plataforma inovadora para versionamento de projetos e clone de repositórios! 🎉
-
-🖥️ Demonstração da Plataforma
-<p align="center"> <img width="600" alt="gbitcode-platform Demo" src="https://github.com/user-attachments/assets/f38127e9-f64a-42cc-951b-99becef22e35" /> </p>
 🔗 Acesse a Plataforma
 🌐 Plataforma: https://gbitcode.vercel.app/
 
