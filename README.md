@@ -163,3 +163,4 @@ MIT License - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 **Gislaine** - [GitHub](https://github.com/gislaine-programadora)
 
 ---
+#DesenvolvimentoDeSoftware #Versionamento #GitHub #Programação #Tech #Lançamento #Desenvolvedor #OpenSource #Coding #Backend
