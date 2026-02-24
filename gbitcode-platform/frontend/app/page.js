@@ -18,22 +18,32 @@ export default function Dashboard() {
     setMounted(true);
   }, []);
 
-  // Busca os repositórios do usuário logado
-  useEffect(() => {
-    if (userEmail) {
+  // Busca os repositórios do usuário logado com atualização inteligente
+useEffect(() => {
+  if (!userEmail) return;
+
+  const fetchRepos = async () => {
+    try {
       setLoading(true);
-      fetch(`https://gbitcode-production.up.railway.app/api/repos/${userEmail}`)
-        .then(res => res.json())
-        .then(data => {
-          setRepos(Array.isArray(data) ? data : []);
-          setLoading(false);
-        })
-        .catch(err => {
-          console.error("Erro ao buscar repositórios:", err);
-          setLoading(false);
-        });
+      // O "?t=" + Date.now() impede que o navegador mostre dados antigos (cache)
+      const res = await fetch(`https://gbitcode-production.up.railway.app/api/repos/${userEmail}?t=${Date.now()}`);
+      const data = await res.json();
+      
+      setRepos(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Erro ao buscar repositórios:", err);
+    } finally {
+      setLoading(false);
     }
-  }, [userEmail]);
+  };
+
+  fetchRepos();
+
+  // Opcional: Atualiza a lista automaticamente a cada 30 segundos
+  const interval = setInterval(fetchRepos, 30000);
+  return () => clearInterval(interval);
+
+}, [userEmail]);
 
   // Lógica de Busca Global
   useEffect(() => {
