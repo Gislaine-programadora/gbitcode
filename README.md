@@ -5,7 +5,23 @@
 </p>
 
 
+<p align="center">
+  <img src="https://sua-url-da-imagem-do-logo-aqui" alt="Gbitcode Platform Logo" width="300">
+</p>
 
+<h1 align="center">GBITCODE.PLATFORM</h1>
+
+<p align="center">
+  <img src="https://img.shields.io/static/v1?label=NPM&message=V1.0.0&color=EA4335&style=for-the-badge" alt="NPM">
+  <img src="https://img.shields.io/static/v1?label=LICENSE&message=ISC&color=0070F3&style=for-the-badge" alt="License">
+  <img src="https://img.shields.io/static/v1?label=STATUS&message=ONLINE&color=4CAF50&style=for-the-badge" alt="Status">
+</p>
+
+<p align="center">
+  <i>Powered by Gbitcode Engine & Next.js 16</i>
+</p>
+
+---
         
 
 
