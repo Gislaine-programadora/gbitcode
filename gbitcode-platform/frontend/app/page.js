@@ -18,6 +18,38 @@ export default function Dashboard() {
     setMounted(true);
   }, []);
 
+  // --- PAREDE DE PROTEÇÃO (Garante que a tela não fique preta) ---
+  
+  // Se ainda estiver carregando a sessão ou o componente não montou, mostra o loading
+  if (status === "loading" || !mounted) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <p className="text-blue-500 font-mono animate-pulse uppercase tracking-[0.5em]">Iniciando Mainframe...</p>
+      </div>
+    );
+  }
+
+  // Se você clicou em "Sair" e não tem sessão, mostra a tela de login estilizada
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-8">
+        <div className="text-center">
+          <h1 className="text-5xl font-black italic mb-2 text-white uppercase">GBITCODE<span className="text-blue-600">.</span>PLATFORM</h1>
+          <p className="text-[10px] text-gray-500 font-mono tracking-[0.3em] mb-12 uppercase">Acesso Restrito / Autenticação Necessária</p>
+          <button 
+            onClick={() => signIn('google')}
+            className="bg-white text-black px-10 py-4 rounded-full font-black text-xs uppercase hover:bg-blue-600 hover:text-white transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)]"
+          >
+            Conectar via Google
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Se passou pelas paredes acima, agora sim definimos o userEmail com segurança
+  const userEmail = session.user?.email;
+
   // Busca os repositórios do usuário logado com atualização inteligente
 useEffect(() => {
   if (!userEmail) return;
