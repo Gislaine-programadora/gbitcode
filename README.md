@@ -166,14 +166,11 @@ MIT License - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 
 
-https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white
-
-
-
-
-
 🔗 Acesse a Plataforma
-🌐 Plataforma: https://gbitcode.vercel.app/
+
+```bash
+ https://gbitcode.vercel.app/
+```
 
 📦 Repositório: https://github.com/Gislaine-programadora/gbitcode.git
 
