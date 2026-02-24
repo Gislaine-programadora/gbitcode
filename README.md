@@ -5,11 +5,6 @@
 </p>
 
 
-<p align="center">
-  <img src="https://sua-url-da-imagem-do-logo-aqui" alt="Gbitcode Platform Logo" width="300">
-</p>
-
-<h1 align="center">GBITCODE.PLATFORM</h1>
 
 <p align="center">
   <img src="https://img.shields.io/static/v1?label=NPM&message=V1.0.0&color=EA4335&style=for-the-badge" alt="NPM">
