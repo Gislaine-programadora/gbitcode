@@ -87,12 +87,6 @@ gbitcode help
 
 ---
 
-💻 Visual da Plataforma
-Aqui está o coração do seu código: um explorer dinâmico com suporte a sintaxe moderna (Solidity, React, etc.) e botões de ação rápida.
-
-
----
-
 
 
 🌐 Tecnologias
