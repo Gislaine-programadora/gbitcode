@@ -165,13 +165,6 @@ MIT License - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 ---
 
 
-
-🔗 Acesse a Plataforma
-
-```bash
- https://gbitcode.vercel.app/
-```
-
 📦 Repositório: https://github.com/Gislaine-programadora/gbitcode.git
 
 #DesenvolvimentoDeSoftware #Versionamento #GitHub #Programação #Tech #Lançamento #Desenvolvedor #OpenSource #Coding #Backend
