@@ -178,3 +178,7 @@ https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&l
 🌐 Plataforma: https://gbitcode.vercel.app/
 
 📦 Repositório: https://github.com/Gislaine-programadora/gbitcode.git
+```
+
+<img width="11" height="18" alt="image" src="https://github.com/user-attachments/assets/2c8b6436-266b-44f7-8a05-d340373f45ba" />
+
