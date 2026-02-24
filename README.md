@@ -90,6 +90,8 @@ gbitcode help
 ---
 
 ### 📦 Publicação Oficial
+
+
 Acompanhe as versões e atualizações da nossa plataforma diretamente no NPM:  
 👉 [https://www.npmjs.com/package/gbitcode-platform](https://www.npmjs.com/package/gbitcode-platform)
 
