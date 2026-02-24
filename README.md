@@ -25,6 +25,8 @@ ____
 
 ---
 
+[![NPM Package](https://img.shields.io/badge/NPM-gbitcode--platform-CB3837?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/gbitcode-platform)
+
 ## 🚀 Instalação
 
 A **Gbitcode Platform** está disponível oficialmente no Registro NPM. Para instalar globalmente em sua máquina, execute:
