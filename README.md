@@ -24,11 +24,19 @@ ____
 </p>
 
 ---
-Instalacao: Iniciar o Gbitcode
+
+## 🚀 Instalação
+
+A **Gbitcode Platform** está disponível oficialmente no Registro NPM. Para instalar globalmente em sua máquina, execute:
+
 
 ```bash
 npm install -g gbitcode-platform
 ```
+
+
+
+[![npm version](https://img.shields.io/badge/NPM-gbitcode--platform-red?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/gbitcode-platform)
 
 
 
