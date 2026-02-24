@@ -170,9 +170,9 @@ MIT License - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 🚀 Novo Lançamento: gbitcode-platform
 Olá, comunidade de devs! 👋
 
-Tenho o prazer de anunciar o lançamento da gbitcode-platform — uma plataforma inovadora para versionamento de projetos e clone de repositórios! 🎉
+# Tenho o prazer de anunciar o lançamento da gbitcode-platform — uma plataforma inovadora para versionamento de projetos e clone de repositórios! 🎉
 
----
+
 
 ```
  <p align="center">
@@ -180,4 +180,34 @@ Tenho o prazer de anunciar o lançamento da gbitcode-platform — uma plataforma
 </p>
 ```
 
+
+
 🌐 Plataforma: https://gbitcode.vercel.app/
+
+
+
+
+https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white
+
+
+
+
+🚀 Novo Lançamento: gbitcode-platform
+Olá, comunidade de devs! 👋
+
+Tenho o prazer de anunciar o lançamento da gbitcode-platform — uma plataforma inovadora para versionamento de projetos e clone de repositórios! 🎉
+
+✨ O que é a gbitcode-platform?
+A gbitcode-platform foi desenvolvida para simplificar e otimizar o processo de gerenciamento de projetos, oferecendo:
+
+✅ Versionamento eficiente — Controle total sobre as versões do seu código
+✅ Clone de repositórios — Clone qualquer repositório de forma rápida e segura
+✅ Interface intuitiva — Experiência moderna e fácil de usar
+✅ Integração com GitHub — Conexão direta com seus projetos existentes
+
+🖥️ Demonstração da Plataforma
+<p align="center"> <img width="600" alt="gbitcode-platform Demo" src="https://github.com/user-attachments/assets/f38127e9-f64a-42cc-951b-99becef22e35" /> </p>
+🔗 Acesse a Plataforma
+🌐 Plataforma: https://gbitcode.vercel.app/
+
+📦 Repositório: https://github.com/Gislaine-programadora/gbitcode.git
