@@ -25,7 +25,7 @@ ____
 
 ---
 
-[![NPM Package](https://img.shields.io/badge/NPM-gbitcode--platform-CB3837?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/gbitcode-platform)
+
 
 ## 🚀 Instalação
 
@@ -38,7 +38,7 @@ npm install -g gbitcode-platform
 
 
 
-[![npm version](https://img.shields.io/badge/NPM-gbitcode--platform-red?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/gbitcode-platform)
+[![NPM Package](https://img.shields.io/badge/NPM-gbitcode--platform-CB3837?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/gbitcode-platform)
 
 
 
