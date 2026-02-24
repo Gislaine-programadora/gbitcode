@@ -7,6 +7,7 @@ const path = require('path');
 const axios = require('axios');
 const open = require('open');
 const os = require('os');
+const cliProgress = require('cli-progress');
 
 const program = new Command();
 
@@ -24,7 +25,7 @@ const welcomeBanner = () => {
 | |_| || |_) | |  | || |__| |_| | |_| | |___ 
  \\____||____/___| |_| \\____\\___/|____/|_____|
     `));
-  console.log(chalk.gray('--- Sistema de Versionamento DNA Code ---\n'));
+  console.log(chalk.gray('--- Sistema de Versionamento GbitCode ---\n'));
 };
 
 // --- FUNÇÃO AUXILIAR RECURSIVA ---
@@ -86,6 +87,39 @@ program
     }
   });
 
+  // COMANDO: HELP PERSONALIZADO
+program
+  .command('help')
+  .description('Exibe o manual de comandos da Gbitcode Platform')
+  .action(() => {
+    console.log(`
+${chalk.bold.italic.cyan('GBITCODE.PLATFORM')} ${chalk.gray('v1.0.0')}
+${chalk.gray('------------------------------------------------')}
+
+${chalk.yellow('USO:')}
+  ${chalk.green('gbitcode <comando> [opções]')}
+
+${chalk.yellow('COMANDOS DISPONÍVEIS:')}
+  ${chalk.cyan('login')} <email>      Vincular sua identidade global ao Mainframe.
+  ${chalk.cyan('init')}               Inicializar um novo projeto Gbitcode nesta pasta.
+  ${chalk.cyan('commit')} <msg>       Sincronizar arquivos com gbitcode-platform.
+  ${chalk.cyan('clone')} <id>        Clonar um repositório existente para sua máquina.
+  ${chalk.cyan('help')}               Mostrar este manual de instruções.
+
+${chalk.yellow('DICA:')}
+  Sempre verifique o status do seu projeto no Dashboard:
+  ${chalk.blue('https://gbitcode.vercel.app')}
+
+${chalk.gray('------------------------------------------------')}
+${chalk.italic.gray('Powered by Gbitcode Engine & Next.js 16')}
+    `);
+  });
+
+// Sobrescrever a ajuda padrão do --help para usar o nosso estilo
+program.on('--help', () => {
+  console.log(chalk.cyan('\nPara um guia detalhado, use: gbitcode help\n'));
+});
+
 // --- COMANDO: LOGIN ---
 program
   .command('login <email>')
@@ -103,7 +137,9 @@ program
     }
   });
 
-  // COMANDO: COMMIT (RECURSIVO) - ATUALIZADO COM LOGIN REAL
+ 
+
+// --- COMANDO: COMMIT (TURBINADO) ---
 program
   .command('commit <message>')
   .description('Envia o projeto para o servidor Gbitcode')
@@ -129,7 +165,6 @@ program
       
       const config = await fs.readJson(projectConfigPath);
       
-      // LINGUAGEM MODERNA: Removido "DNA"
       console.log(chalk.blue(`🛰️  Preparando projeto: ${chalk.bold(config.name)}...`));
 
       const allFiles = await getAllFiles(process.cwd());
@@ -138,21 +173,43 @@ program
         return console.log(chalk.yellow('⚠️ Nenhum arquivo encontrado para envio.'));
       }
 
-      console.log(chalk.cyan(`📦 Projeto Gbitcode enviando ${allFiles.length} arquivos...`));
-      console.log(chalk.gray(`👤 Autor: ${email}`));
+    // --- INICIALIZAÇÃO DA BARRA LIMPA ---
+      console.log(chalk.cyan(`📦 Transmitindo projeto para o gbitcode-platform...`));
+      
+      const progressBar = new cliProgress.SingleBar({
+        format: chalk.blue('Sincronizando |') + chalk.cyan('{bar}') + '| {percentage}%',
+        barCompleteChar: '\u2588',
+        barIncompleteChar: '\u2591',
+        hideCursor: true,
+        clearOnComplete: true // Isso limpa a barra quando termina, evitando o visual "sujo"
+      });
 
-      // 3. ENVIO PARA O SERVIDOR
+      progressBar.start(100, 0);
+
+      // Envio Real
       const response = await axios.post(`${API_URL}/commit`, {
-        email: email, // Agora usa o seu e-mail real do login
+        email: email, 
         repoName: config.name,
         message: message,
         files: allFiles
+      }, {
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+        timeout: 600000,
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          progressBar.update(percentCompleted);
+        }
       });
 
+      progressBar.stop();
+
       console.log(chalk.green(`\n✅ PROJETO GBITCODE SINCRONIZADO!`));
+      console.log(chalk.gray(`👤 Autor: ${email}`));
       console.log(chalk.cyan(`🔗 Dashboard: https://gbitcode.vercel.app/repository/${config.name}`));
 
     } catch (error) {
+      if (typeof progressBar !== 'undefined') progressBar.stop();
       console.error(chalk.red('\n❌ Erro durante a transmissão do projeto:'));
       console.log(chalk.gray(error.response?.data?.error || error.message));
     }
@@ -165,7 +222,7 @@ program
   .action(async (repoName) => {
     try {
       const ownerEmail = "dev-teste@gbitcode.com";
-      console.log(chalk.blue(`🧬 Baixando sequência de DNA: ${repoName}...`));
+      console.log(chalk.blue(`🧬 Baixando sequência de Files: ${repoName}...`));
 
       const response = await axios.get(`${API_URL}/repos/${ownerEmail}/${repoName}/clone`);
       const files = response.data;

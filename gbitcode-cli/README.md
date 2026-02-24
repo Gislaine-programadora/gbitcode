@@ -4,9 +4,20 @@
   <img width="378" height="142" alt="GBITCODE Logo" src="https://github.com/user-attachments/assets/e8305fa4-83a9-435f-b334-d0042c7b514d" />
 </p>
 
+<div align="center">
+  
+  # GBITCODE<span style="color: #2563eb;">.</span>PLATFORM
+  
+  [![NPM Version](https://img.shields.io/static/v1?label=npm&message=v1.0.0&color=red&style=for-the-badge)](https://www.npmjs.com/package/gbitcode-platform)
+  [![License](https://img.shields.io/static/v1?label=license&message=ISC&color=blue&style=for-the-badge)](https://opensource.org/licenses/ISC)
+  [![Status](https://img.shields.io/static/v1?label=status&message=online&color=emerald&style=for-the-badge)](https://gbitcode.vercel.app)
 
+  <p><i>Powered by Gbitcode Engine & Next.js 16</i></p>
 
-        
+</div>
+
+---
+
 
 
 
@@ -68,6 +79,14 @@ Baixa qualquer projeto do seu mainframe diretamente para a sua máquina atual, r
 ```Bash
 gbitcode clone meu-projeto-web3
 ```
+
+## 5. gbitcode help
+Quer Conhecer Os Comandos? O manual de instruções integrado te ajuda a navegar por todas as funcionalidades da plataforma em segundos.
+
+```Bash
+gbitcode help
+```
+
 
 ---
 
