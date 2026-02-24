@@ -69,7 +69,7 @@ Baixa qualquer projeto do seu mainframe diretamente para a sua máquina atual, r
 gbitcode clone meu-projeto-web3
 ```
 
-5. gbitcode help
+## 5. gbitcode help
 Quer Conhecer Os Comandos? O manual de instruções integrado te ajuda a navegar por todas as funcionalidades da plataforma em segundos.
 
 ```bash
