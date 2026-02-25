@@ -1,7 +1,6 @@
 
 
-  <p align="center">
-  <img width="378" height="142" alt="GBITCODE Logo" src="https://github.com/user-attachments/assets/e8305fa4-83a9-435f-b334-d0042c7b514d" />
+  <p align="center"> <img width="378" height="142" alt="GBITCODE Logo" src="https://github.com/user-attachments/assets/e8305fa4-83a9-435f-b334-d0042c7b514d" />
 </p>
 
 
