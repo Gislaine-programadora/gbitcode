@@ -11,7 +11,7 @@ app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 // 1. CONEXÃO COM O BANCO DE DADOS (RAILWAY)
-const db = mysql.createPool({
+   const db = mysql.createPool({
   host: process.env.MYSQLHOST,
   user: process.env.MYSQLUSER,
   password: process.env.MYSQLPASSWORD,
