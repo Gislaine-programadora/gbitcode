@@ -1,8 +1,7 @@
 const express = require('express');
-const mysql = require('mysql2');
 const cors = require('cors');
 require('dotenv').config();
-
+const { Pool } = require('pg');
 const app = express();
 
 // Configuração de Segurança e Limites de Dados
@@ -11,18 +10,11 @@ app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 // 1. CONEXÃO COM O BANCO DE DADOS (RAILWAY)
-   const db = mysql.createPool({
-  host: process.env.MYSQLHOST,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
-  port: process.env.MYSQLPORT || 3306,
-  ssl: { rejectUnauthorized: false },
-  waitForConnections: true,
-  connectionLimit: 20,
-  queueLimit: 0,
-  connectTimeout: 60000,
-  acquireTimeout: 60000
+    const db = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 // 2. CRIAÇÃO DAS TABELAS (ORDEM CORRETA)
