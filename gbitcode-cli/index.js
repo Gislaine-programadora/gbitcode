@@ -14,7 +14,7 @@ const program = new Command();
 // --- ORDEM CORRETA DE INICIALIZAÇÃO ---
 const homedir = os.homedir(); // 2º Cria a variável homedir primeiro
 const CONFIG_PATH = path.join(homedir, '.gbitcode_config'); // 3º Agora usa ela aqui!
-const API_URL = "https://gbitcode-production.up.railway.app/api";
+const API_URL = "https://gbitcode-api.onrender.com/api";
 
 // Banner de Boas-vindas
 const welcomeBanner = () => {
