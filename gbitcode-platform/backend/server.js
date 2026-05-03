@@ -157,6 +157,11 @@ app.get('/api/repos/:email/:repoName/clone', async (req, res) => {
   }
 });
 
+// Roteamento de API
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 // 🔍 Buscar repos
 app.get('/api/search', async (req, res) => {
   const query = req.query.q;
