@@ -103,7 +103,7 @@ export default function RepositoryFiles() {
   const handleOpenFile = async (fileName) => {
     try {
       // Ajuste: Rota do backend para ler um único arquivo
-      const response = await fetch(`https://gbitcode-production.up.railway.app/api/repos/${userEmail}/${name}/file/${fileName}`);
+     const response = await fetch(`https://gbitcode-api.onrender.com/api/repos/${userEmail}/${name}/file/${fileName}`);
       const content = await response.text();
       setFileContent(content);
       setSelectedFile(fileName);
@@ -116,7 +116,7 @@ export default function RepositoryFiles() {
     if (!name) return;
     const fetchFiles = async () => {
       try {
-        const res = await fetch(`https://gbitcode-production.up.railway.app/api/repos/${userEmail}/${name}/files`);
+       const res = await fetch(`https://gbitcode-api.onrender.com/api/repos/${userEmail}/${name}/files`);
         const data = await res.json();
         setFiles(Array.isArray(data) ? data : []);
       } catch (error) {
