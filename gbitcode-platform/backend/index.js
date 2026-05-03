@@ -1,5 +1,5 @@
 const express = require('express');
-const multer = require('multer');
+
 const path = require('path');
 const fs = require('fs-extra');
 const archiver = require('archiver');
@@ -7,35 +7,49 @@ const archiver = require('archiver');
 const app = express();
 app.use(express.json());
 
-const upload = multer({ dest: 'temp/' });
+
 
 // --- COMMIT ---
 app.post('/api/commit', (req, res) => {
-    upload.array('files')(req, res, async (err) => {
-        if (err) {
-            return res.status(500).json({ success: false, error: err.message });
-        }
-
-        const { repoName, ownerEmail, message, hash } = req.body;
+    try {
+        const { repoName, ownerEmail, message, hash, files } = req.body;
 
         console.log(`📥 Commit recebido: ${repoName} de ${ownerEmail}`);
+        console.log(`📦 Arquivos: ${files?.length || 0}`);
 
-        res.json({
+        return res.json({
             success: true,
-            hash,
+            hash: hash || Date.now().toString(),
             url: `https://gbitcode.vercel.app/repository/${repoName}`
         });
-    });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
 });
 
 // --- CLONE ---
 app.get('/api/clone/:owner/:repoName', async (req, res) => {
-    const { repoName } = req.params;
+    const { owner, repoName } = req.params;
 
-    res.json({
-        message: "Clone endpoint ativo",
-        repo: repoName
-    });
+    const projectPath = path.join(__dirname, 'storage', owner, repoName);
+
+    if (!fs.existsSync(projectPath)) {
+        return res.status(404).json({ error: 'Repo não encontrado' });
+    }
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename=${repoName}.zip`);
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
+
+    archive.pipe(res);
+    archive.directory(projectPath, false);
+
+    await archive.finalize();
 });
 
 // --- VIEW ---
