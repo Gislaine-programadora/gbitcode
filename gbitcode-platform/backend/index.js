@@ -10,27 +10,60 @@ app.use(express.json());
 
 
 // --- COMMIT ---
-app.post('/api/commit', (req, res) => {
-    try {
-        const { repoName, ownerEmail, message, hash, files } = req.body;
+app.post('/api/commit', async (req, res) => {
+  const { email, repoName, files } = req.body;
 
-        console.log(`📥 Commit recebido: ${repoName} de ${ownerEmail}`);
-        console.log(`📦 Arquivos: ${files?.length || 0}`);
+  if (!email || !repoName || !files) {
+    return res.status(400).json({ error: "Dados incompletos" });
+  }
 
-        return res.json({
-            success: true,
-            hash: hash || Date.now().toString(),
-            url: `https://gbitcode.vercel.app/repository/${repoName}`
-        });
+  const client = await db.connect();
 
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            error: error.message
-        });
+  try {
+    await client.query('BEGIN');
+
+    let repo = await client.query(
+      "SELECT id FROM repos WHERE name = $1 AND owner_email = $2",
+      [repoName, email]
+    );
+
+    let repoId;
+
+    if (repo.rows.length === 0) {
+      const newRepo = await client.query(
+        "INSERT INTO repos (name, owner_email) VALUES ($1, $2) RETURNING id",
+        [repoName, email]
+      );
+      repoId = newRepo.rows[0].id;
+    } else {
+      repoId = repo.rows[0].id;
     }
-});
 
+    // 🔥 otimização: bulk insert
+    const values = files.map(f =>
+      `(${repoId}, '${f.name.replace(/'/g, "''")}', '${f.content.replace(/'/g, "''")}')`
+    ).join(',');
+
+    await client.query(
+      `INSERT INTO repo_files (repo_id, name, content) VALUES ${values}`
+    );
+
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      message: "Commit realizado!",
+      repoId
+    });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
 // --- CLONE ---
 app.get('/api/clone/:owner/:repoName', async (req, res) => {
     const { owner, repoName } = req.params;
