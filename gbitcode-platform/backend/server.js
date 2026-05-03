@@ -2,176 +2,182 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const { Pool } = require('pg');
+
 const app = express();
 
-// Configuração de Segurança e Limites de Dados
 app.use(cors());
-app.use(express.json({ limit: '100mb' })); 
+app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
-// 1. CONEXÃO COM O BANCO DE DADOS (RAILWAY)
-    const db = new Pool({
+// ✅ Conexão PostgreSQL
+const db = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: { rejectUnauthorized: false }
 });
 
-// 2. CRIAÇÃO DAS TABELAS (ORDEM CORRETA)
-const setupQuery = `
-  CREATE TABLE IF NOT EXISTS repos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    owner_email VARCHAR(255) NOT NULL,
-    public TINYINT(1) DEFAULT 1,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`;
+// ✅ Criar tabelas automaticamente
+(async () => {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS repos (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        owner_email VARCHAR(255) NOT NULL,
+        public BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
-const fileTableQuery = `
-  CREATE TABLE IF NOT EXISTS repo_files (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    repo_id INT,
-    name VARCHAR(255),
-    content LONGTEXT,
-    FOREIGN KEY (repo_id) REFERENCES repos(id) ON DELETE CASCADE
-  )
-`;
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS repo_files (
+        id SERIAL PRIMARY KEY,
+        repo_id INT REFERENCES repos(id) ON DELETE CASCADE,
+        name VARCHAR(255),
+        content TEXT
+      )
+    `);
 
-db.query(setupQuery, (err) => {
-  if (err) console.error("❌ Erro ao criar tabela repos:", err);
-  else {
-    console.log("✅ Tabela 'repos' verificada!");
-    db.query(fileTableQuery, (err) => {
-      if (err) console.error("❌ Erro ao criar tabela repo_files:", err);
-      else console.log("✅ Tabela 'repo_files' verificada!");
-    });
+    console.log("✅ Tabelas prontas!");
+  } catch (err) {
+    console.error("❌ Erro ao criar tabelas:", err);
   }
-});
+})();
 
-// ROTA: LISTAR APENAS OS NOMES DOS ARQUIVOS (Para o Explorer da lateral esquerda)
-app.get('/api/repos/:email/:repoName/files', (req, res) => {
+// 📂 Listar arquivos
+app.get('/api/repos/:email/:repoName/files', async (req, res) => {
   const { repoName } = req.params;
-  
-  // Busca apenas os nomes dos arquivos vinculados a esse repositório
-  const query = `
-    SELECT rf.name 
-    FROM repo_files rf
-    JOIN repos r ON rf.repo_id = r.id
-    WHERE r.name = ?
-  `;
-  
-  db.query(query, [repoName], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    
-    // Transformamos o resultado em um array simples de strings: ["pasta/file.js", "index.js"]
-    const fileList = results.map(file => file.name);
-    res.json(fileList);
-  });
+
+  try {
+    const result = await db.query(`
+      SELECT rf.name
+      FROM repo_files rf
+      JOIN repos r ON rf.repo_id = r.id
+      WHERE r.name = $1
+    `, [repoName]);
+
+    res.json(result.rows.map(f => f.name));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// ROTA: LER O CONTEÚDO DE UM ARQUIVO ESPECÍFICO
-app.get('/api/repos/:email/:repoName/file/:fileName(*)', (req, res) => {
+// 📄 Ler arquivo
+app.get('/api/repos/:email/:repoName/file/:fileName(*)', async (req, res) => {
   const { repoName, fileName } = req.params;
 
-  const query = `
-    SELECT rf.content 
-    FROM repo_files rf
-    JOIN repos r ON rf.repo_id = r.id
-    WHERE r.name = ? AND rf.name = ?
-  `;
+  try {
+    const result = await db.query(`
+      SELECT rf.content
+      FROM repo_files rf
+      JOIN repos r ON rf.repo_id = r.id
+      WHERE r.name = $1 AND rf.name = $2
+    `, [repoName, fileName]);
 
-  db.query(query, [repoName, fileName], (err, results) => {
-    if (err) return res.status(500).send("Erro ao buscar conteúdo");
-    if (results.length === 0) return res.status(404).send("Arquivo não encontrado");
+    if (result.rows.length === 0) {
+      return res.status(404).send("Arquivo não encontrado");
+    }
 
-    // Retorna apenas o texto do código
-    res.send(results[0].content);
-  });
+    res.send(result.rows[0].content);
+  } catch (err) {
+    res.status(500).send("Erro ao buscar conteúdo");
+  }
 });
 
-// 3. ROTAS DA API
-
-// Listar Repositórios do Usuário
-app.get('/api/repos/:email', (req, res) => {
-  const query = "SELECT * FROM repos WHERE owner_email = ?";
-  db.query(query, [req.params.email], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
+// 📦 Listar repositórios
+app.get('/api/repos/:email', async (req, res) => {
+  try {
+    const result = await db.query(
+      "SELECT * FROM repos WHERE owner_email = $1",
+      [req.params.email]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// RECEBER O COMMIT DO CLI
-app.post('/api/commit', (req, res) => {
-  const { email, repoName, message, files } = req.body;
+// 🚀 Commit
+app.post('/api/commit', async (req, res) => {
+  const { email, repoName, files } = req.body;
 
   if (!email || !repoName || !files) {
     return res.status(400).json({ error: "Dados incompletos" });
   }
 
-  const checkRepo = "SELECT id FROM repos WHERE name = ? AND owner_email = ?";
-  db.query(checkRepo, [repoName, email], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
+  try {
+    let repo = await db.query(
+      "SELECT id FROM repos WHERE name = $1 AND owner_email = $2",
+      [repoName, email]
+    );
 
-    if (results.length === 0) {
-      const insertRepo = "INSERT INTO repos (name, owner_email) VALUES (?, ?)";
-      db.query(insertRepo, [repoName, email], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
-        saveFiles(result.insertId, files, res);
-      });
+    let repoId;
+
+    if (repo.rows.length === 0) {
+      const newRepo = await db.query(
+        "INSERT INTO repos (name, owner_email) VALUES ($1, $2) RETURNING id",
+        [repoName, email]
+      );
+      repoId = newRepo.rows[0].id;
     } else {
-      saveFiles(results[0].id, files, res);
+      repoId = repo.rows[0].id;
     }
-  });
+
+    // inserir arquivos
+    for (const file of files) {
+      await db.query(
+        "INSERT INTO repo_files (repo_id, name, content) VALUES ($1, $2, $3)",
+        [repoId, file.name, file.content]
+      );
+    }
+
+    console.log(`📦 ${files.length} arquivos salvos`);
+    res.json({ message: "✅ Commit realizado!", repoId });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro no commit" });
+  }
 });
 
-// Função para gravar os arquivos no banco
-function saveFiles(repoId, files, res) {
-  const values = files.map(f => [repoId, f.name, f.content]);
-  const query = "INSERT INTO repo_files (repo_id, name, content) VALUES ?";
-  
-  db.query(query, [values], (err) => {
-    if (err) {
-      console.error("❌ Erro ao salvar arquivos:", err);
-      return res.status(500).json({ error: "Falha ao gravar DNA no banco" });
-    }
-    console.log(`📦 DNA Armazenado: ${files.length} arquivos salvos.`);
-    res.json({ message: "✅ Commit realizado com sucesso!", repoId });
-  });
-}
-
-// ROTA PARA O CLONE (Recuperar arquivos)
-app.get('/api/repos/:email/:repoName/clone', (req, res) => {
+// 📥 Clone
+app.get('/api/repos/:email/:repoName/clone', async (req, res) => {
   const { repoName } = req.params;
-  const query = `
-    SELECT rf.name, rf.content 
-    FROM repo_files rf
-    JOIN repos r ON rf.repo_id = r.id
-    WHERE r.name = ?
-  `;
-  
-  db.query(query, [repoName], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
+
+  try {
+    const result = await db.query(`
+      SELECT rf.name, rf.content
+      FROM repo_files rf
+      JOIN repos r ON rf.repo_id = r.id
+      WHERE r.name = $1
+    `, [repoName]);
+
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.get('/api/search', (req, res) => {
+// 🔍 Buscar repos
+app.get('/api/search', async (req, res) => {
   const query = req.query.q;
-  // Busca em todos os repositórios, idependente do dono
-  const sql = "SELECT * FROM repos WHERE name LIKE ?";
-  db.query(sql, [`%${query}%`], (err, results) => {
-    if (err) return res.status(500).json(err);
-    res.json(results);
-  });
+
+  try {
+    const result = await db.query(
+      "SELECT * FROM repos WHERE name ILIKE $1",
+      [`%${query}%`]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 });
 
-// Status do Servidor
+// 🌐 Status
 app.get('/', (req, res) => {
   res.send('🚀 Gbitcode API está online!');
 });
 
-// Ligar Servidor
+// 🚀 Start server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
