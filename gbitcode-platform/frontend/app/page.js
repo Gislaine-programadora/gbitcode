@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { signIn, signOut, useSession } from "next-auth/react";
 
 export default function Dashboard() {
- const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [repos, setRepos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,7 +48,7 @@ export default function Dashboard() {
   }
 
   // Se passou pelas paredes acima, agora sim definimos o userEmail com segurança
-
+  const userEmail = session.user?.email;
 
   // Busca os repositórios do usuário logado com atualização inteligente
 useEffect(() => {
@@ -58,7 +58,7 @@ useEffect(() => {
     try {
       setLoading(true);
       // O "?t=" + Date.now() impede que o navegador mostre dados antigos (cache)
-     const res = await fetch(`https://gbitcode-api.onrender.com/api/repos/${userEmail}?t=${Date.now()}`);
+      const res = await fetch(`https://gbitcode-api.onrender.com/api/repos/${userEmail}?t=${Date.now()}`);
       const data = await res.json();
       
       setRepos(Array.isArray(data) ? data : []);
@@ -82,7 +82,7 @@ useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
       if (searchTerm.length > 1) {
         try {
-          const res = await fetch(`https://gbitcode-api.onrender.com/api/search?q=${searchTerm}`);
+         const res = await fetch(`https://gbitcode-api.onrender.com/api/search?q=${searchTerm}`);
           const data = await res.json();
           setGlobalResults(Array.isArray(data) ? data : []);
         } catch (err) {
