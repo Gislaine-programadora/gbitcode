@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { signIn, signOut, useSession } from "next-auth/react";
 
 export default function Dashboard() {
-  const { data: session } = useSession();
+ 
+ const { data: session, status } = useSession();
   const [repos, setRepos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
