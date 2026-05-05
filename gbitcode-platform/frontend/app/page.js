@@ -70,7 +70,15 @@ export default function Dashboard() {
   }, [searchTerm]);
 
   // PROTEÇÃO
-  if (!mounted || status === "loading") {
+  if (!mounted) return null;
+
+if (status === "loading") {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white">
+      Carregando sessão...
+    </div>
+  );
+}
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white">
         <p className="animate-pulse font-mono">Inicializando sistema...</p>
