@@ -12,10 +12,11 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [globalResults, setGlobalResults] = useState([]);
   const [mounted, setMounted] = useState(false);
+  const [showGuide, setShowGuide] = useState(false); // ✅ modal
 
   const userEmail = session?.user?.email;
 
-  // ✅ HOOKS
+  // HOOKS
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -42,7 +43,6 @@ export default function Dashboard() {
     };
 
     fetchRepos();
-
     const interval = setInterval(fetchRepos, 30000);
     return () => clearInterval(interval);
 
@@ -69,7 +69,7 @@ export default function Dashboard() {
     return () => clearTimeout(delay);
   }, [searchTerm]);
 
-  // 🔒 PROTEÇÃO
+  // PROTEÇÃO
   if (!mounted || status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white">
@@ -98,6 +98,10 @@ export default function Dashboard() {
     repo.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const copy = (text) => {
+    navigator.clipboard.writeText(text);
+  };
+
   const copyToClipboard = (repoName) => {
     navigator.clipboard.writeText(`gbitcode clone ${repoName}`);
     alert("Comando copiado!");
@@ -119,17 +123,28 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="text-right">
-            <p className="text-xs text-gray-500">Usuário</p>
-            <p className="text-sm text-blue-400 font-bold">
-              {session.user.email}
-            </p>
+          <div className="flex items-center gap-4">
+
+            {/* BOTÃO GUIA */}
             <button
-              onClick={() => signOut()}
-              className="text-xs text-red-500 mt-2 hover:underline"
+              onClick={() => setShowGuide(true)}
+              className="bg-blue-600 px-4 py-2 rounded text-xs font-bold hover:bg-blue-500"
             >
-              Sair
+              COMO USAR
             </button>
+
+            <div className="text-right">
+              <p className="text-xs text-gray-500">Usuário</p>
+              <p className="text-sm text-blue-400 font-bold">
+                {session.user.email}
+              </p>
+              <button
+                onClick={() => signOut()}
+                className="text-xs text-red-500 mt-2 hover:underline"
+              >
+                Sair
+              </button>
+            </div>
           </div>
         </header>
 
@@ -216,6 +231,68 @@ export default function Dashboard() {
         </footer>
 
       </div>
+
+      {/* MODAL GUIA */}
+      {showGuide && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-[#0D1117] border border-white/10 p-6 rounded-2xl w-full max-w-xl text-white relative">
+
+            <button 
+              onClick={() => setShowGuide(false)}
+              className="absolute top-3 right-3 text-red-500"
+            >
+              ✖
+            </button>
+
+            <h2 className="text-xl font-black mb-4 text-blue-400">
+              🚀 Como usar o Gbitcode
+            </h2>
+
+            <ol className="text-sm space-y-4">
+
+              <li>
+                <strong>1. Vá até seu projeto</strong>
+                <p className="text-gray-400 text-xs">
+                  Abra o terminal na pasta do seu projeto
+                </p>
+              </li>
+
+              <li>
+                <strong>2. Instale a CLI</strong>
+                <div className="flex justify-between bg-black p-2 rounded mt-1">
+                  <code>npm install -g gbitcode-cli</code>
+                  <button onClick={() => copy("npm install -g gbitcode-cli")}>📋</button>
+                </div>
+              </li>
+
+              <li>
+                <strong>3. Faça login</strong>
+                <div className="flex justify-between bg-black p-2 rounded mt-1">
+                  <code>gbitcode login</code>
+                  <button onClick={() => copy("gbitcode login")}>📋</button>
+                </div>
+              </li>
+
+              <li>
+                <strong>4. Envie seu projeto</strong>
+                <div className="flex justify-between bg-black p-2 rounded mt-1">
+                  <code>gbitcode commit "meu projeto"</code>
+                  <button onClick={() => copy('gbitcode commit "meu projeto"')}>📋</button>
+                </div>
+              </li>
+
+              <li>
+                <strong>5. Pronto 🎉</strong>
+                <p className="text-gray-400 text-xs">
+                  Veja seus códigos no site, use busca global e clone projetos
+                </p>
+              </li>
+
+            </ol>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
