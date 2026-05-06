@@ -217,7 +217,7 @@ export default function Dashboard() {
       {/* MODAL */}
       {showGuide && (
         <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/80 flex items-start justify-center z-50 overflow-y-auto pt-20"
           onClick={() => setShowGuide(false)}
         >
           <div
