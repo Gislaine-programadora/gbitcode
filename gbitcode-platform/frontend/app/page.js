@@ -212,69 +212,72 @@ export default function Dashboard() {
         <footer className="mt-20 text-center text-xs text-gray-600 font-mono">
           Powered by Gbitcode Engine
         </footer>
+
       </div>
 
       {/* MODAL */}
-     
-{showGuide && (
-  <div
-    className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
-    onClick={() => setShowGuide(false)}
-  >
-    <div
-      className="bg-[#0D1117] border border-white/10 p-6 rounded-2xl w-full max-w-xl text-white relative max-h-[90vh] overflow-y-auto"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <button
-        onClick={() => setShowGuide(false)}
-        className="absolute top-3 right-3 text-red-500"
-      >
-        ✖
-      </button>
+      {showGuide && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowGuide(false)}
+        >
+          <div
+            className="bg-[#0D1117] border border-white/10 p-6 rounded-2xl w-full max-w-xl text-white relative max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowGuide(false)}
+              className="absolute top-3 right-3 text-red-500"
+            >
+              ✖
+            </button>
 
-      <h2 className="text-xl font-black mb-4 text-blue-400">
-        🚀 Como usar o Gbitcode
-      </h2>
+            <h2 className="text-xl font-black mb-4 text-blue-400">
+              🚀 Como usar o Gbitcode
+            </h2>
 
-      <ol className="text-sm space-y-4">
-        <li>
-          <strong>1. Vá até seu projeto</strong>
-          <p className="text-gray-400 text-xs">
-            Abra o terminal na pasta do seu projeto
-          </p>
-        </li>
+            <ol className="text-sm space-y-4">
+              <li>
+                <strong>1. Vá até seu projeto</strong>
+                <p className="text-gray-400 text-xs">
+                  Abra o terminal na pasta do seu projeto
+                </p>
+              </li>
 
-        <li>
-          <strong>2. Instale a CLI</strong>
-          <div className="flex justify-between bg-black p-2 rounded mt-1">
-            <code>npm install -g gbitcode-cli</code>
-            <button onClick={() => copy("npm install -g gbitcode-cli")}>📋</button>
+              <li>
+                <strong>2. Instale a CLI</strong>
+                <div className="flex justify-between bg-black p-2 rounded mt-1">
+                  <code>npm install -g gbitcode-cli</code>
+                  <button onClick={() => copy("npm install -g gbitcode-cli")}>📋</button>
+                </div>
+              </li>
+
+              <li>
+                <strong>3. Faça login</strong>
+                <div className="flex justify-between bg-black p-2 rounded mt-1">
+                  <code>gbitcode login</code>
+                  <button onClick={() => copy("gbitcode login")}>📋</button>
+                </div>
+              </li>
+
+              <li>
+                <strong>4. Envie seu projeto</strong>
+                <div className="flex justify-between bg-black p-2 rounded mt-1">
+                  <code>gbitcode commit "meu projeto"</code>
+                  <button onClick={() => copy('gbitcode commit "meu projeto"')}>📋</button>
+                </div>
+              </li>
+
+              <li>
+                <strong>5. Pronto 🎉</strong>
+                <p className="text-gray-400 text-xs">
+                  Veja seus códigos no site
+                </p>
+              </li>
+            </ol>
           </div>
-        </li>
-
-        <li>
-          <strong>3. Faça login</strong>
-          <div className="flex justify-between bg-black p-2 rounded mt-1">
-            <code>gbitcode login</code>
-            <button onClick={() => copy("gbitcode login")}>📋</button>
-          </div>
-        </li>
-
-        <li>
-          <strong>4. Envie seu projeto</strong>
-          <div className="flex justify-between bg-black p-2 rounded mt-1">
-            <code>gbitcode commit "meu projeto"</code>
-            <button onClick={() => copy('gbitcode commit "meu projeto"')}>📋</button>
-          </div>
-        </li>
-
-        <li>
-          <strong>5. Pronto 🎉</strong>
-          <p className="text-gray-400 text-xs">
-            Veja seus códigos no site
-          </p>
-        </li>
-      </ol>
+        </div>
+      )}
     </div>
-  </div>
-)}
+  );
+}
