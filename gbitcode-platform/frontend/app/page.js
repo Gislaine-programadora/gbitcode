@@ -1,7 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { motion, AnimatePresence } from "framer-motion"; // Certifique-se de ter framer-motion instalado
+import { Info, Terminal, X, Copy, Check } from "lucide-react";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -12,7 +14,9 @@ export default function Dashboard() {
   const [globalResults, setGlobalResults] = useState([]);
   const [mounted, setMounted] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [copiedCmd, setCopiedCmd] = useState(null);
 
+  const guideRef = useRef(null);
   const userEmail = session?.user?.email;
 
   // ---------------- HOOKS ----------------
@@ -21,17 +25,28 @@ export default function Dashboard() {
     setMounted(true);
   }, []);
 
+  // Fecha o card ao clicar fora dele
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (guideRef.current && !guideRef.current.contains(event.target)) {
+        setShowGuide(false);
+      }
+    };
+    if (showGuide) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showGuide]);
+
   useEffect(() => {
     if (!userEmail) return;
 
     const fetchRepos = async () => {
       try {
         setLoading(true);
-
         const res = await fetch(
           `https://gbitcode-api.onrender.com/api/repos/${userEmail}?t=${Date.now()}`
         );
-
         const data = await res.json();
         setRepos(Array.isArray(data) ? data : []);
       } catch (err) {
@@ -42,7 +57,6 @@ export default function Dashboard() {
     };
 
     fetchRepos();
-
     const interval = setInterval(fetchRepos, 30000);
     return () => clearInterval(interval);
   }, [userEmail]);
@@ -54,7 +68,6 @@ export default function Dashboard() {
           const res = await fetch(
             `https://gbitcode-api.onrender.com/api/search?q=${searchTerm}`
           );
-
           const data = await res.json();
           setGlobalResults(Array.isArray(data) ? data : []);
         } catch (err) {
@@ -67,8 +80,6 @@ export default function Dashboard() {
 
     return () => clearTimeout(delay);
   }, [searchTerm]);
-
-  // ---------------- PROTEÇÕES ----------------
 
   if (!mounted) return null;
 
@@ -104,6 +115,8 @@ export default function Dashboard() {
 
   const copy = (text) => {
     navigator.clipboard.writeText(text);
+    setCopiedCmd(text);
+    setTimeout(() => setCopiedCmd(null), 2000);
   };
 
   const copyToClipboard = (repoName) => {
@@ -114,11 +127,11 @@ export default function Dashboard() {
   // ---------------- UI ----------------
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-8 font-sans">
+    <div className="min-h-screen bg-[#050505] text-white p-8 font-sans overflow-x-hidden">
       <div className="max-w-6xl mx-auto">
-
+        
         {/* HEADER */}
-        <header className="flex justify-between items-center mb-12">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
           <div>
             <h1 className="text-4xl font-black italic">
               GBITCODE<span className="text-blue-500">.</span>PLATFORM
@@ -128,22 +141,81 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowGuide(true)}
-              className="bg-blue-600 px-4 py-2 rounded text-xs font-bold hover:bg-blue-500"
-            >
-              COMO USAR
-            </button>
+          <div className="flex items-center gap-4 relative">
+            {/* CONTAINER DO BOTÃO E CARD */}
+            <div className="relative" ref={guideRef}>
+              <button
+                onClick={() => setShowGuide(!showGuide)}
+                className={`flex items-center gap-2 px-4 py-2 rounded text-xs font-bold transition-all ${
+                  showGuide ? "bg-blue-600" : "bg-blue-700 hover:bg-blue-600"
+                }`}
+              >
+                <Info size={14} />
+                COMO USAR
+              </button>
+
+              {/* CARD DE INFORMAÇÕES (POPOVER ABSOLUTO) */}
+              <AnimatePresence>
+                {showGuide && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute top-full right-0 mt-3 w-[320px] md:w-[400px] bg-[#0D1117] border border-white/10 p-6 rounded-2xl shadow-2xl z-[100]"
+                  >
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-lg font-black text-blue-400 flex items-center gap-2">
+                        <Terminal size={18} /> 🚀 Guia CLI
+                      </h2>
+                      <button onClick={() => setShowGuide(false)} className="text-gray-500 hover:text-white">
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-xs font-bold text-gray-300">1. Instale a CLI</p>
+                        <div className="flex justify-between bg-black p-2 rounded mt-1 border border-white/5">
+                          <code className="text-[11px] text-blue-300">npm install -g gbitcode-cli</code>
+                          <button onClick={() => copy("npm install -g gbitcode-cli")} className="text-gray-500 hover:text-blue-400">
+                            {copiedCmd === "npm install -g gbitcode-cli" ? <Check size={14} /> : <Copy size={14} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-xs font-bold text-gray-300">2. Faça login</p>
+                        <div className="flex justify-between bg-black p-2 rounded mt-1 border border-white/5">
+                          <code className="text-[11px] text-blue-300">gbitcode login</code>
+                          <button onClick={() => copy("gbitcode login")} className="text-gray-500 hover:text-blue-400">
+                             {copiedCmd === "gbitcode login" ? <Check size={14} /> : <Copy size={14} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-xs font-bold text-gray-300">3. Envie seu projeto</p>
+                        <div className="flex justify-between bg-black p-2 rounded mt-1 border border-white/5">
+                          <code className="text-[11px] text-blue-300">gbitcode commit "projeto"</code>
+                          <button onClick={() => copy('gbitcode commit "projeto"')} className="text-gray-500 hover:text-blue-400">
+                             {copiedCmd === 'gbitcode commit "projeto"' ? <Check size={14} /> : <Copy size={14} />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             <div className="text-right">
-              <p className="text-xs text-gray-500">Usuário</p>
-              <p className="text-sm text-blue-400 font-bold">
+              <p className="text-xs text-gray-500 leading-none">Usuário</p>
+              <p className="text-sm text-blue-400 font-bold truncate max-w-[150px]">
                 {session.user.email}
               </p>
               <button
                 onClick={() => signOut()}
-                className="text-xs text-red-500 mt-2 hover:underline"
+                className="text-[10px] text-red-500 hover:underline"
               >
                 Sair
               </button>
@@ -212,72 +284,7 @@ export default function Dashboard() {
         <footer className="mt-20 text-center text-xs text-gray-600 font-mono">
           Powered by Gbitcode Engine
         </footer>
-
       </div>
-
-      {/* MODAL */}
-      {showGuide && (
-        <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowGuide(false)}
-        >
-          <div
-            className="bg-[#0D1117] border border-white/10 p-6 rounded-2xl w-full max-w-xl text-white relative max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setShowGuide(false)}
-              className="absolute top-3 right-3 text-red-500"
-            >
-              ✖
-            </button>
-
-            <h2 className="text-xl font-black mb-4 text-blue-400">
-              🚀 Como usar o Gbitcode
-            </h2>
-
-            <ol className="text-sm space-y-4">
-              <li>
-                <strong>1. Vá até seu projeto</strong>
-                <p className="text-gray-400 text-xs">
-                  Abra o terminal na pasta do seu projeto
-                </p>
-              </li>
-
-              <li>
-                <strong>2. Instale a CLI</strong>
-                <div className="flex justify-between bg-black p-2 rounded mt-1">
-                  <code>npm install -g gbitcode-cli</code>
-                  <button onClick={() => copy("npm install -g gbitcode-cli")}>📋</button>
-                </div>
-              </li>
-
-              <li>
-                <strong>3. Faça login</strong>
-                <div className="flex justify-between bg-black p-2 rounded mt-1">
-                  <code>gbitcode login</code>
-                  <button onClick={() => copy("gbitcode login")}>📋</button>
-                </div>
-              </li>
-
-              <li>
-                <strong>4. Envie seu projeto</strong>
-                <div className="flex justify-between bg-black p-2 rounded mt-1">
-                  <code>gbitcode commit "meu projeto"</code>
-                  <button onClick={() => copy('gbitcode commit "meu projeto"')}>📋</button>
-                </div>
-              </li>
-
-              <li>
-                <strong>5. Pronto 🎉</strong>
-                <p className="text-gray-400 text-xs">
-                  Veja seus códigos no site
-                </p>
-              </li>
-            </ol>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
