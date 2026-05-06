@@ -100,7 +100,7 @@ export default function Dashboard() {
           GBITCODE<span className="text-blue-500">.</span>
         </h1>
         <button
-          onClick={() => signIn("google")}
+         onClick={() => signIn("google", { prompt: "select_account" })}
           className="bg-white text-black px-6 py-3 rounded-full font-bold hover:bg-blue-600 hover:text-white transition"
         >
           Login com Google
