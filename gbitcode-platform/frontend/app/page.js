@@ -93,13 +93,25 @@ export default function Dashboard() {
     );
   }
 
-  if (!session) {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#050505] text-white">
-      <h1 className="text-4xl font-black mb-6">
-        GBITCODE<span className="text-blue-500">.</span>
-      </h1>
+  //login
 
+  <header className="flex justify-between items-center mb-16">
+  <div>
+    <div className="flex items-center gap-3 mb-2">
+      <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-black text-xs shadow-[0_0_20px_rgba(37,99,235,0.5)]">
+        GB
+      </div>
+      <span className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.4em]">
+        Gbitcode v1.0
+      </span>
+    </div>
+    <h1 className="text-4xl font-black tracking-tighter uppercase italic">
+      Gbitcode<span className="text-blue-600">.</span>Platform
+    </h1>
+  </div>
+
+  <div className="text-right">
+    {!session ? (
       <button
         onClick={async () => {
           await signOut({ redirect: false }); // 🔥 limpa sessão antiga
@@ -108,14 +120,31 @@ export default function Dashboard() {
             callbackUrl: "/"
           });
         }}
-        className="bg-white text-black px-6 py-3 rounded-full font-bold hover:bg-blue-600 hover:text-white transition"
+        className="bg-white text-black px-4 py-2 rounded-full text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all"
       >
-        Login com Google
+        Conectar Google
       </button>
-    </div>
-  );
-}
+    ) : (
+      <div className="flex items-center gap-4">
+        <div className="text-right">
+          <p className="text-[10px] text-gray-500 font-mono uppercase">
+            Authorized User
+          </p>
+          <p className="text-sm font-bold text-blue-400">
+            {session.user.email}
+          </p>
+        </div>
 
+        <button
+          onClick={() => signOut({ callbackUrl: "/" })} // 🔥 logout REAL
+          className="text-[9px] text-red-500 border border-red-500/30 px-2 py-1 rounded hover:bg-red-500/10 transition-all"
+        >
+          SAIR
+        </button>
+      </div>
+    )}
+  </div>
+</header>
   // ---------------- FUNÇÕES ----------------
 
   const myFilteredRepos = repos.filter((repo) =>
