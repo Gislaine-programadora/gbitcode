@@ -94,20 +94,27 @@ export default function Dashboard() {
   }
 
   if (!session) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#050505] text-white">
-        <h1 className="text-4xl font-black mb-6">
-          GBITCODE<span className="text-blue-500">.</span>
-        </h1>
-        <button
-         onClick={() => signIn("google", { prompt: "select_account" })}
-          className="bg-white text-black px-6 py-3 rounded-full font-bold hover:bg-blue-600 hover:text-white transition"
-        >
-          Login com Google
-        </button>
-      </div>
-    );
-  }
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#050505] text-white">
+      <h1 className="text-4xl font-black mb-6">
+        GBITCODE<span className="text-blue-500">.</span>
+      </h1>
+
+      <button
+        onClick={async () => {
+          await signOut({ redirect: false }); // 🔥 limpa sessão antiga
+          signIn("google", {
+            prompt: "select_account", // 🔥 força escolher conta
+            callbackUrl: "/"
+          });
+        }}
+        className="bg-white text-black px-6 py-3 rounded-full font-bold hover:bg-blue-600 hover:text-white transition"
+      >
+        Login com Google
+      </button>
+    </div>
+  );
+}
 
   // ---------------- FUNÇÕES ----------------
 
