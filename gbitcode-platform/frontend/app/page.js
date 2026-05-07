@@ -2,8 +2,6 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { motion, AnimatePresence } from "framer-motion"; 
-import { Info, Terminal, X, Copy, Check, Search, LogOut, User, Box, ExternalLink } from "lucide-react";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -13,10 +11,7 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [globalResults, setGlobalResults] = useState([]);
   const [mounted, setMounted] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
-  const [copiedId, setCopiedId] = useState(null);
 
-  const guideRef = useRef(null);
   const userEmail = session?.user?.email;
 
   // ---------------- HOOKS ----------------
@@ -48,39 +43,6 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [userEmail]);
 
-  useEffect(() => {
-    const delay = setTimeout(async () => {
-      if (searchTerm.length > 1) {
-        try {
-          const res = await fetch(
-            `https://gbitcode-api.onrender.com/api/search?q=${searchTerm}`
-          );
-          const data = await res.json();
-          setGlobalResults(Array.isArray(data) ? data : []);
-        } catch (err) {
-          console.error("Erro na busca global:", err);
-        }
-      } else {
-        setGlobalResults([]);
-      }
-    }, 300);
-
-    return () => clearTimeout(delay);
-  }, [searchTerm]);
-
-  // Fecha o guia ao clicar fora
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (guideRef.current && !guideRef.current.contains(event.target)) {
-        setShowGuide(false);
-      }
-    };
-    if (showGuide) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showGuide]);
-
   // ---------------- PROTEÇÕES ----------------
 
   if (!mounted) return null;
@@ -93,58 +55,67 @@ export default function Dashboard() {
     );
   }
 
-  //login
+  // ---------------- UI (AQUI ESTAVA O ERRO) ----------------
 
-  <header className="flex justify-between items-center mb-16">
-  <div>
-    <div className="flex items-center gap-3 mb-2">
-      <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-black text-xs shadow-[0_0_20px_rgba(37,99,235,0.5)]">
-        GB
-      </div>
-      <span className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.4em]">
-        Gbitcode v1.0
-      </span>
-    </div>
-    <h1 className="text-4xl font-black tracking-tighter uppercase italic">
-      Gbitcode<span className="text-blue-600">.</span>Platform
-    </h1>
-  </div>
+  return (
+    <div className="min-h-screen bg-[#050505] text-white p-8 font-sans">
 
-  <div className="text-right">
-    {!session ? (
-      <button
-        onClick={async () => {
-          await signOut({ redirect: false }); // 🔥 limpa sessão antiga
-          signIn("google", {
-            prompt: "select_account", // 🔥 força escolher conta
-            callbackUrl: "/"
-          });
-        }}
-        className="bg-white text-black px-4 py-2 rounded-full text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all"
-      >
-        Conectar Google
-      </button>
-    ) : (
-      <div className="flex items-center gap-4">
-        <div className="text-right">
-          <p className="text-[10px] text-gray-500 font-mono uppercase">
-            Authorized User
-          </p>
-          <p className="text-sm font-bold text-blue-400">
-            {session.user.email}
-          </p>
+      {/* HEADER */}
+      <header className="flex justify-between items-center mb-16">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-black text-xs">
+              GB
+            </div>
+            <span className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.4em]">
+              Gbitcode v1.0
+            </span>
+          </div>
+
+          <h1 className="text-4xl font-black tracking-tighter uppercase italic">
+            Gbitcode<span className="text-blue-600">.</span>Platform
+          </h1>
         </div>
 
-        <button
-          onClick={() => signOut({ callbackUrl: "/" })} // 🔥 logout REAL
-          className="text-[9px] text-red-500 border border-red-500/30 px-2 py-1 rounded hover:bg-red-500/10 transition-all"
-        >
-          SAIR
-        </button>
-      </div>
-    )}
-  </div>
-</header>
+        <div className="text-right">
+          {!session ? (
+            <button
+              onClick={async () => {
+                await signOut({ redirect: false }); // limpa sessão antiga
+                signIn("google", {
+                  prompt: "select_account", // força escolher conta
+                  callbackUrl: "/"
+                });
+              }}
+              className="bg-white text-black px-4 py-2 rounded-full text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all"
+            >
+              Conectar Google
+            </button>
+          ) : (
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-[10px] text-gray-500 font-mono uppercase">
+                  Authorized User
+                </p>
+                <p className="text-sm font-bold text-blue-400">
+                  {session.user.email}
+                </p>
+              </div>
+
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="text-[9px] text-red-500 border border-red-500/30 px-2 py-1 rounded hover:bg-red-500/10 transition-all"
+              >
+                SAIR
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
+
+    </div>
+  );
+}
   // ---------------- FUNÇÕES ----------------
 
   const myFilteredRepos = repos.filter((repo) =>
