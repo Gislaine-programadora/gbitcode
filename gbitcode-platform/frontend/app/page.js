@@ -125,8 +125,13 @@ export default function Dashboard() {
                     </div>
 
                     <div>
-                      <code>gbitcode login</code>
-                      <button onClick={() => copy("gbitcode login")}>📋</button>
+                      <code>gbitcode login email</code>
+                      <button onClick={() => copy("gbitcode login email")}>📋</button>
+                    </div>
+
+                    <div>
+                      <code>gbitcode init</code>
+                      <button onClick={() => copy("gbitcode init")}>📋</button>
                     </div>
 
                     <div>
