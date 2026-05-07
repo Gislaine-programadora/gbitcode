@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { Info, Terminal, X, Copy, Check, Search, LogOut, Box, ExternalLink } from "lucide-react";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -11,19 +10,15 @@ export default function Dashboard() {
   const [repos, setRepos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [globalResults, setGlobalResults] = useState([]);
   const [mounted, setMounted] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
-  const [copiedId, setCopiedId] = useState(null);
 
   const guideRef = useRef(null);
   const userEmail = session?.user?.email;
 
   // ---------------- HOOKS ----------------
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!userEmail) return;
@@ -37,80 +32,48 @@ export default function Dashboard() {
         const data = await res.json();
         setRepos(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error("Erro ao buscar repositórios:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchRepos();
-    const interval = setInterval(fetchRepos, 30000);
-    return () => clearInterval(interval);
   }, [userEmail]);
 
+  // FECHAR CARD AO CLICAR FORA
   useEffect(() => {
-    const delay = setTimeout(async () => {
-      if (searchTerm.length > 1) {
-        try {
-          const res = await fetch(
-            `https://gbitcode-api.onrender.com/api/search?q=${searchTerm}`
-          );
-          const data = await res.json();
-          setGlobalResults(Array.isArray(data) ? data : []);
-        } catch (err) {
-          console.error("Erro na busca global:", err);
-        }
-      } else {
-        setGlobalResults([]);
-      }
-    }, 300);
-
-    return () => clearTimeout(delay);
-  }, [searchTerm]);
-
-  // Fecha o guia ao clicar fora
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (guideRef.current && !guideRef.current.contains(event.target)) {
+    const handleClick = (e) => {
+      if (guideRef.current && !guideRef.current.contains(e.target)) {
         setShowGuide(false);
       }
     };
 
-    if (showGuide) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showGuide]);
-
-  // ---------------- PROTEÇÕES ----------------
+  // ---------------- PROTEÇÃO ----------------
 
   if (!mounted) return null;
 
   if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white">
-        Carregando sessão...
-      </div>
-    );
+    return <p className="text-white">Carregando...</p>;
   }
 
   if (!session) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#050505] text-white">
-        <h1 className="text-4xl font-black mb-6">
-          GBITCODE<span className="text-blue-500">.</span>
-        </h1>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white">
+        <h1 className="text-3xl mb-4">GBITCODE</h1>
 
         <button
           onClick={async () => {
             await signOut({ redirect: false });
-            signIn("google", {
-              prompt: "select_account",
-              callbackUrl: "/"
-            });
+
+            // 🔥 FORÇA ESCOLHER CONTA
+            window.location.href = "/api/auth/signin?prompt=select_account";
           }}
-          className="bg-white text-black px-6 py-3 rounded-full font-bold hover:bg-blue-600 hover:text-white transition"
+          className="bg-white text-black px-6 py-3 rounded"
         >
           Login com Google
         </button>
@@ -120,93 +83,76 @@ export default function Dashboard() {
 
   // ---------------- FUNÇÕES ----------------
 
-  const myFilteredRepos = repos.filter((repo) =>
-    repo.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filtered = repos.filter((r) =>
+    r.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const copy = (text, id) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const copyToClipboard = (repoName) => {
-    navigator.clipboard.writeText(`gbitcode clone ${repoName}`);
-    alert("Comando copiado!");
-  };
+  const copy = (text) => navigator.clipboard.writeText(text);
 
   // ---------------- UI ----------------
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-8 font-sans">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-black text-white p-6">
+      <div className="max-w-5xl mx-auto">
 
         {/* HEADER */}
-        <header className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
-          <div>
-            <h1 className="text-4xl font-black italic">
-              GBITCODE<span className="text-blue-500">.</span>PLATFORM
-            </h1>
-            <p className="text-xs text-gray-500 font-mono">
-              Sistema de versionamento distribuído
-            </p>
-          </div>
+        <header className="flex justify-between items-center mb-10">
+
+          <h1 className="text-2xl font-bold">GBITCODE</h1>
 
           <div className="flex items-center gap-4">
 
-            {/* BOTÃO GUIA */}
+            {/* BOTÃO + CARD */}
             <div className="relative" ref={guideRef}>
+
               <button
                 onClick={() => setShowGuide(!showGuide)}
-                className="bg-blue-600 px-4 py-2 rounded text-xs font-bold hover:bg-blue-500"
+                className="bg-blue-600 px-4 py-2 rounded text-xs"
               >
                 COMO USAR
               </button>
 
               {showGuide && (
-                <div className="absolute right-0 mt-3 w-[320px] bg-[#0D1117] border border-white/10 p-4 rounded-xl z-[200] shadow-2xl">
-                  <p className="text-sm font-bold mb-2">Guia rápido</p>
+                <div className="absolute top-full right-0 mt-2 w-[300px] bg-[#111] border p-4 rounded z-50">
+
+                  <p className="mb-2 text-sm text-blue-400">Guia</p>
 
                   <div className="space-y-3 text-xs">
+
                     <div>
-                      <p>Instalar CLI:</p>
-                      <button onClick={() => copy("npm install -g gbitcode-cli", "1")}>
-                        Copiar
-                      </button>
+                      <code>npm install -g gbitcode-cli</code>
+                      <button onClick={() => copy("npm install -g gbitcode-cli")}>📋</button>
                     </div>
 
                     <div>
-                      <p>Login:</p>
-                      <button onClick={() => copy("gbitcode login", "2")}>
-                        Copiar
-                      </button>
+                      <code>gbitcode login</code>
+                      <button onClick={() => copy("gbitcode login")}>📋</button>
                     </div>
 
                     <div>
-                      <p>Commit:</p>
-                      <button onClick={() => copy('gbitcode commit "meu projeto"', "3")}>
-                        Copiar
-                      </button>
+                      <code>gbitcode commit "meu projeto"</code>
+                      <button onClick={() => copy('gbitcode commit "meu projeto"')}>📋</button>
                     </div>
+
                   </div>
+
                 </div>
               )}
+
             </div>
 
             {/* USER */}
-            <div className="text-right">
-              <p className="text-xs text-gray-500">Usuário</p>
-              <p className="text-sm text-blue-400 font-bold">
-                {session.user.email}
-              </p>
+            <div>
+              <p className="text-xs">{session.user.email}</p>
 
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="text-xs text-red-500 mt-1 hover:underline"
+                className="text-red-500 text-xs"
               >
                 Sair
               </button>
             </div>
+
           </div>
         </header>
 
@@ -215,24 +161,26 @@ export default function Dashboard() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Buscar..."
-          className="p-3 text-black rounded mb-6 w-full md:w-96"
+          className="p-2 text-black mb-6 w-full"
         />
 
-        {/* GRID */}
-        <div className="grid gap-4">
+        {/* LISTA */}
+        <div className="space-y-2">
           {loading ? (
             <p>Carregando...</p>
-          ) : myFilteredRepos.map((repo) => (
-            <div key={repo.id} className="border p-4 rounded">
-              <Link href={`/repository/${repo.name}`}>
-                {repo.name}
-              </Link>
+          ) : (
+            filtered.map((repo) => (
+              <div key={repo.id} className="border p-3 flex justify-between">
+                <Link href={`/repository/${repo.name}`}>
+                  {repo.name}
+                </Link>
 
-              <button onClick={() => copyToClipboard(repo.name)}>
-                Clone
-              </button>
-            </div>
-          ))}
+                <button onClick={() => copy(`gbitcode clone ${repo.name}`)}>
+                  Clone
+                </button>
+              </div>
+            ))
+          )}
         </div>
 
       </div>
